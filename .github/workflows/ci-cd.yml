@@ -54,12 +54,12 @@ jobs:
         shell: bash
 
       - name: Generate deployment package
-          run: |
-            mkdir -p deploy
-            cp -r .ebextensions deploy/.ebextensions
-            cp Dockerrun.aws.json deploy/Dockerrun.aws.json
-            cp -r .platform deploy/.platform
-            cd deploy && zip -r deploy.zip .
+        run: |
+          mkdir -p deploy
+          cp -r .ebextensions deploy/.ebextensions
+          cp Dockerrun.aws.json deploy/Dockerrun.aws.json
+          cp -r .platform deploy/.platform
+          cd deploy && zip -r deploy.zip .
 
       - name: BeanStalk Deploy
         uses: einaregilsson/beanstalk-deploy@v14
