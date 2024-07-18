@@ -1,0 +1,25 @@
+spring:
+  main:
+    allow-bean-definition-overriding: true
+  application:
+    name: blink
+  profiles:
+    include:
+      - oauth
+    active: local
+  data:
+    redis:
+      lettuce:
+        pool:
+          max-active: 5
+          max-idle: 5
+          min-idle: 2
+
+jwt:
+  secret-key: ${SECRET_KEY}
+  token-valid-time:  172800 # 2일
+  refresh-valid-time: 1209600 # 2주
+
+server:
+  max-http-request-header-size: 400000
+

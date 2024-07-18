@@ -1,0 +1,19 @@
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: ${AWS_DB_URL}
+    username: ${AWS_DB_USERNAME}
+    password: ${AWS_DB_PASSWORD}
+  jpa:
+    hibernate:
+      ddl-auto: create
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQL8Dialect
+  data:
+    redis:
+      host: ${AWS_REDIS_HOST}
+      port: ${AWS_REDIS_PORT}
+  docker:
+    compose:
+      enabled: false
