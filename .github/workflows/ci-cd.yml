@@ -1,0 +1,76 @@
+name: B.Link Dev Server Docker Beanstalk CI/CD
+
+on:
+  push:
+    branches:
+      - dev
+  pull_request:
+    branches:
+      - dev
+    types: [closed]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.merged == true && github.event.pull_request.base.ref == 'dev'
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          java-version: 17
+          distribution: 'temurin'
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x ./gradlew
+        shell: bash
+
+      - name: Build with Gradle
+        run: ./gradlew clean build -x test
+        shell: bash
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Build and push Docker images
+        run: |
+          docker build -t ${{ secrets.DOCKER_REPO }} --platform linux/amd64 .
+          docker push ${{ secrets.DOCKER_REPO }}
+
+      - name: Get current time
+        uses: 1466587594/get-current-time@v2
+        id: current-time
+        with:
+          format: YYYY-MM-DDTHH-mm-ss
+          utcOffset: "+09:00"
+
+      - name: Show Current Time
+        run: echo "CurrentTime=$"
+        shell: bash
+
+      - name: Generate deployment package
+          run: |
+            mkdir -p deploy
+            cp -r .ebextensions deploy/.ebextensions
+            cp Dockerrun.aws.json deploy/Dockerrun.aws.json
+            cp -r .platform deploy/.platform
+            cd deploy && zip -r deploy.zip .
+
+      - name: BeanStalk Deploy
+        uses: einaregilsson/beanstalk-deploy@v14
+        with:
+          aws_access_key: ${{ secrets.AWS_ACTION_ACCESS_KEY_ID }}
+          aws_secret_key: ${{ secrets.AWS_ACTION_SECRET_ACCESS_KEY }}
+          region: 'ap-northeast-2'
+          application_name: 'blink-prod'
+          environment_name: 'Blink-prod-env'
+          version_label: github-action-${{ steps.current-time.outputs.formattedTime }}
+          deployment_package: deploy/deploy.zip
+          wait_for_deployment: false
