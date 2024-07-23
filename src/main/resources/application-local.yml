@@ -17,3 +17,18 @@ spring:
   docker:
     compose:
       enabled: true
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            redirect-uri: http://localhost:8080/login/oauth2/code/google
+oauth:
+  success-redirect-url: http://localhost:3000
+
+apple:
+  team-id:
+  login-key:
+  client-id:
+  redirect-url: http://localhost:8080/api/callback/apple
+  key-path:
