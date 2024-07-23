@@ -34,7 +34,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
     @org.springframework.web.bind.annotation.ExceptionHandler(JwtAuthenticationException.class)
     public ResponseEntity<Object> handleJwtAuthenticationException(JwtAuthenticationException e, WebRequest request) {
-        return handleExceptionInternal(e, e.getErrorCode(), request);
+        return handleExceptionInternal(e, ErrorCode.UNAUTHORIZED, request);
     }
 
     private ResponseEntity<Object> handleExceptionInternal(Exception e, ErrorCode errorCode,

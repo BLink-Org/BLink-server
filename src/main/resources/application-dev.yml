@@ -17,3 +17,18 @@ spring:
   docker:
     compose:
       enabled: false
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            redirect-uri: https://blink-bookmarklink.com/login/oauth2/code/google
+oauth:
+  success-redirect-url: https://blink-bookmarklink.com/
+
+apple:
+  team-id:
+  login-key:
+  client-id:
+  redirect-url: https://blink-bookmarklink.com/api/callback/apple
+  key-path:
