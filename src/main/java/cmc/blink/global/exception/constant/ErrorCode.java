@@ -7,16 +7,44 @@ import org.springframework.http.HttpStatus;
 
 import java.util.Optional;
 import java.util.function.Predicate;
+import java.util.stream.Stream;
+
+/**
+ * Error code 목록
+ *
+ * <ul>
+ *     <li>1001 ~ 1999: 일반 예외. </li>
+ *     <li>2000 ~ 2199: 인증 관련 예외</li>
+ *     <li>2200 ~ 2399: 유저 관련 예외</li>
+ *     <li>2400 ~ 2599: 주소 관련 예외</li>
+ *     <li>2600 ~ 2799: 악기 관련 예외</li>
+ *     <li>2800 ~ 2999: 악기 관련 예외</li>
+ * </ul>
+ */
 
 @Getter
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 public enum ErrorCode {
 
-    FORBIDDEN(HttpStatus.FORBIDDEN, 4003, "접근 권한이 없습니다."),
-    UNAUTHORIZED(HttpStatus.UNAUTHORIZED, 4004,"인증 정보가 유효하지 않습니다."),
-    BAD_REQUEST(HttpStatus.BAD_REQUEST, 4005,"잘못된 요청 입니다."),
-    INVALID_PARAMETER(HttpStatus.BAD_REQUEST, 4006, "요청 파라미터가 잘못되었습니다."),
-    INTERNAL_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, 5000,"서버 내부 에러입니다.");
+    FORBIDDEN(HttpStatus.FORBIDDEN, 1001, "접근 권한이 없습니다."),
+    UNAUTHORIZED(HttpStatus.UNAUTHORIZED, 1002,"인증 정보가 유효하지 않습니다."),
+    BAD_REQUEST(HttpStatus.BAD_REQUEST, 1003,"잘못된 요청 입니다."),
+    INVALID_PARAMETER(HttpStatus.BAD_REQUEST, 1004, "요청 파라미터가 잘못되었습니다."),
+    INTERNAL_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, 1005,"서버 내부 에러입니다."),
+
+    // 인증 관련 에러
+    INVALID_OAUTH2_PROVIDER(HttpStatus.UNAUTHORIZED, 2000, "유효하지 않은 OAuth2 프로바이더 요청입니다."),
+    COOKIE_NOT_FOUND(HttpStatus.NOT_FOUND, 2001, "쿠키가 존재하지 않습니다."),
+    INVALID_REFRESH_TOKEN_EXCEPTION(HttpStatus.UNAUTHORIZED, 2002, "유효하지 않은 리프레시 토큰입니다."),
+    BLACKLISTED_ACCESSTOKEN_EXCEPTION(HttpStatus.UNAUTHORIZED, 2003, "블랙리스트에 등록된 토큰입니다."),
+    JWT_BAD_REQUEST(HttpStatus.UNAUTHORIZED, 2004, "잘못된 JWT 서명입니다."),
+    JWT_TOKEN_EXPIRED(HttpStatus.UNAUTHORIZED, 2005, "만료된 JWT 토큰입니다."),
+    JWT_UNSUPPORTED_TOKEN(HttpStatus.UNAUTHORIZED, 2006,"지원하지 않는 JWT 토큰입니다."),
+    JWT_TOKEN_NOT_FOUND(HttpStatus.NOT_FOUND, 2007, "토큰을 찾을 수 없습니다."),
+
+    // 유저 관련 에러
+    USER_NOT_FOUND_EXCEPTION(HttpStatus.NOT_FOUND, 2200, "사용자를 찾을 수 없습니다."),
+    ;
 
     private final HttpStatus httpStatus;
     private final Integer code;
@@ -31,6 +59,12 @@ public enum ErrorCode {
         return Optional.ofNullable(message)
                 .filter(Predicate.not(String::isBlank))
                 .orElse(this.getMessage());
+    }
+
+    public static Optional<ErrorCode> fromMessage(String message) {
+        return Stream.of(values())
+                .filter(errorCode -> errorCode.getMessage().equals(message))
+                .findFirst();
     }
 
     @Override
