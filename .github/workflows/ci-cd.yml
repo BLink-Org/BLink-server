@@ -35,8 +35,8 @@ jobs:
         if: ${{ !failure() }}
         run: |
           docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
-          docker build -t ${{ secrets.DOCKER_REPO }}:latest .
-          echo "Docker image built: ${{ secrets.DOCKER_REPO }}:latest"
+          docker build -t blink:latest .
+          docker tag blink:latest ${{ secrets.DOCKER_REPO }}:latest
           docker push ${{ secrets.DOCKER_REPO }}:latest
 
       - name: Get current time
