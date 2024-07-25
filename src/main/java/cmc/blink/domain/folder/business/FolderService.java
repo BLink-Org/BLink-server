@@ -35,4 +35,18 @@ public class FolderService {
         }
     }
 
+    public void updateTitle(FolderRequest.FolderTitleUpdateDto updateDto, Long folderId, User user) {
+
+        Folder folder = folderQueryAdapter.findById(folderId);
+
+        if(folder.getUser() != user)
+            throw new FolderException(ErrorCode.FOLDER_ACCESS_DENIED);
+
+        if (folderQueryAdapter.isFolderTitleDuplicate(updateDto.getTitle(), user))
+            throw new FolderException(ErrorCode.DUPLICATE_FOLDER_TITLE);
+        else
+            folderCommandAdapter.updateTitle(folder, updateDto);
+
+    }
+
 }

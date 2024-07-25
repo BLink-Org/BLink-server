@@ -35,4 +35,8 @@ public class Folder extends BaseTimeEntity {
     @Column
     private LocalDateTime lastLinkedAt;
 
+    public void updateTitle(String title) {
+        this.title = title;
+    }
+
 }

@@ -48,7 +48,8 @@ public enum ErrorCode {
 
     // 폴더 관련 에러
     DUPLICATE_FOLDER_TITLE(HttpStatus.BAD_REQUEST, 2400, "이미 존재하는 폴더 제목입니다."),
-
+    FOLDER_NOT_FOUND(HttpStatus.NOT_FOUND, 2401, "폴더를 찾을 수 없습니다."),
+    FOLDER_ACCESS_DENIED(HttpStatus.FORBIDDEN, 2402, "해당 폴더에 대한 접근이 거부되었습니다."),
     ;
 
     private final HttpStatus httpStatus;
