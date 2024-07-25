@@ -6,6 +6,7 @@ import lombok.*;
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
@@ -35,6 +36,12 @@ public class User extends BaseTimeEntity {
     private String provider;
 
     @Column
+    private LocalDate deleteRequestDate;
+
+    @Column
+    private LocalDate dormantStartDate;
+
+    @Column(nullable = false)
     private LocalDateTime lastLoginTime;
 
     public void update(String name, String email, String provider) {
