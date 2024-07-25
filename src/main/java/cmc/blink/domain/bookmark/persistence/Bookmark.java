@@ -1,13 +1,12 @@
-package cmc.blink.domain.folder.persistence;
+package cmc.blink.domain.bookmark.persistence;
 
+import cmc.blink.domain.link.persistence.Link;
 import cmc.blink.domain.user.persistence.User;
 import cmc.blink.global.common.BaseTimeEntity;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
-
-import java.time.LocalDateTime;
 
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -16,7 +15,7 @@ import java.time.LocalDateTime;
 @DynamicUpdate
 @Getter
 @Builder
-public class Folder extends BaseTimeEntity {
+public class Bookmark extends BaseTimeEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -26,14 +25,7 @@ public class Folder extends BaseTimeEntity {
     @JoinColumn(name = "user_id")
     private User user;
 
-    @Column(nullable = false)
-    private String title;
-
-    @Column(nullable = false)
-    private int sortOrder;
-
-    @Column(nullable = false)
-    private LocalDateTime lastLikedAt;
-
-
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "link_id")
+    private Link link;
 }
