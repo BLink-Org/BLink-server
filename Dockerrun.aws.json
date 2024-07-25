@@ -3,7 +3,7 @@
   "containerDefinitions": [
     {
       "name": "blink",
-      "image": "suminnnnn/blink:latest",
+      "image": "<AWS_ACCOUNT_ID>.dkr.ecr.ap-northeast-2.amazonaws.com/blink:latest",
       "essential": true,
       "memory": 512,
       "portMappings": [
