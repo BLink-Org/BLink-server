@@ -23,13 +23,14 @@ public class Folder extends BaseTimeEntity {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
     private User user;
 
     @Column(nullable = false)
     private String title;
 
     @Column(nullable = false)
-    private int order;
+    private int sortOrder;
 
     @Column(nullable = false)
     private LocalDateTime lastLikedAt;
