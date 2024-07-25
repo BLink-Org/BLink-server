@@ -32,8 +32,7 @@ public class Folder extends BaseTimeEntity {
     @Column(nullable = false)
     private int sortOrder;
 
-    @Column(nullable = false)
-    private LocalDateTime lastLikedAt;
-
+    @Column
+    private LocalDateTime lastLinkedAt;
 
 }
