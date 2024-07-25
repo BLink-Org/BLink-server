@@ -7,7 +7,9 @@ import cmc.blink.global.exception.constant.ErrorCode;
 import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
@@ -15,6 +17,12 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 
 @RestControllerAdvice(annotations = {RestController.class})
 public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
+
+    @Override
+    protected ResponseEntity<Object> handleMethodArgumentNotValid(
+            MethodArgumentNotValidException ex, HttpHeaders headers, HttpStatusCode status, WebRequest request) {
+        return handleExceptionInternalFalse(ex, ErrorCode.INVALID_DATA, headers, status, request);
+    }
 
     @org.springframework.web.bind.annotation.ExceptionHandler
     public ResponseEntity<Object> handleConstraintViolationException(ConstraintViolationException e, WebRequest request) {
@@ -46,6 +54,18 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     private ResponseEntity<Object> handleExceptionInternal(Exception e, ErrorCode errorCode,
                                                            HttpHeaders headers, HttpStatus status, WebRequest request) {
         ApiErrorResponse body = ApiErrorResponse.of(errorCode, e);
+        return super.handleExceptionInternal(
+                e,
+                body,
+                headers,
+                status,
+                request
+        );
+    }
+
+    private ResponseEntity<Object> handleExceptionInternalFalse(Exception e, ErrorCode errorCode,
+                                                           HttpHeaders headers, HttpStatusCode status, WebRequest request) {
+        ApiErrorResponse body = ApiErrorResponse.of(errorCode);
         return super.handleExceptionInternal(
                 e,
                 body,
