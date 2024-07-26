@@ -66,16 +66,15 @@ jobs:
           utcOffset: "+09:00"
 
       - name: Show Current Time
-        run: echo "CurrentTime=$"
+        run: echo "CurrentTime=${{ steps.current-time.outputs.formattedTime }}"
         shell: bash
 
       - name: Generate deployment package
         run: |
           mkdir -p deploy
           cp -r .ebextensions deploy/.ebextensions
-          cp Dockerrun.aws.json.template deploy/Dockerrun.aws.json
+          cp Dockerrun.aws.json deploy/Dockerrun.aws.json
           cp -r .platform deploy/.platform
-          sed -i 's/<AWS_ACCOUNT_ID>/${{ secrets.AWS_ACCOUNT_ID }}/g' deploy/Dockerrun.aws.json
           cd deploy && zip -r deploy.zip .
 
       - name: BeanStalk Deploy
