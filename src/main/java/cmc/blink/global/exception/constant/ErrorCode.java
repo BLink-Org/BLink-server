@@ -16,9 +16,9 @@ import java.util.stream.Stream;
  *     <li>1001 ~ 1999: 일반 예외. </li>
  *     <li>2000 ~ 2199: 인증 관련 예외</li>
  *     <li>2200 ~ 2399: 유저 관련 예외</li>
- *     <li>2400 ~ 2599: 주소 관련 예외</li>
- *     <li>2600 ~ 2799: 악기 관련 예외</li>
- *     <li>2800 ~ 2999: 악기 관련 예외</li>
+ *     <li>2400 ~ 2599: 폴더 관련 예외</li>
+ *     <li>2600 ~ 2799: 링크 관련 예외</li>
+ *     <li>2800 ~ 2999: 북마크 관련 예외</li>
  * </ul>
  */
 
@@ -29,7 +29,7 @@ public enum ErrorCode {
     FORBIDDEN(HttpStatus.FORBIDDEN, 1001, "접근 권한이 없습니다."),
     UNAUTHORIZED(HttpStatus.UNAUTHORIZED, 1002,"인증 정보가 유효하지 않습니다."),
     BAD_REQUEST(HttpStatus.BAD_REQUEST, 1003,"잘못된 요청 입니다."),
-    INVALID_PARAMETER(HttpStatus.BAD_REQUEST, 1004, "요청 파라미터가 잘못되었습니다."),
+    INVALID_DATA(HttpStatus.BAD_REQUEST, 1004, "요청 데이터에 대한 유효성 검사 실패입니다."),
     INTERNAL_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, 1005,"서버 내부 에러입니다."),
 
     // 인증 관련 에러
@@ -44,6 +44,12 @@ public enum ErrorCode {
 
     // 유저 관련 에러
     USER_NOT_FOUND_EXCEPTION(HttpStatus.NOT_FOUND, 2200, "사용자를 찾을 수 없습니다."),
+
+
+    // 폴더 관련 에러
+    DUPLICATE_FOLDER_TITLE(HttpStatus.BAD_REQUEST, 2400, "이미 존재하는 폴더 제목입니다."),
+    FOLDER_NOT_FOUND(HttpStatus.NOT_FOUND, 2401, "폴더를 찾을 수 없습니다."),
+    FOLDER_ACCESS_DENIED(HttpStatus.FORBIDDEN, 2402, "해당 폴더에 대한 접근이 거부되었습니다."),
     ;
 
     private final HttpStatus httpStatus;
