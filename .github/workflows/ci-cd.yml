@@ -1,9 +1,6 @@
-name: B.Link Dev Server Docker Beanstalk CI/CD
+name: B.Link Dev CI/CD
 
 on:
-  push:
-    branches:
-      - dev
   pull_request:
     branches:
       - dev
@@ -31,33 +28,6 @@ jobs:
         run: ./gradlew clean build -x test
         shell: bash
 
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v1
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACTION_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_ACTION_SECRET_ACCESS_KEY }}
-          aws-region: 'ap-northeast-2'
-
-      - name: Login to Amazon ECR
-        run: |
-          aws ecr get-login-password --region ap-northeast-2 | docker login --username AWS --password-stdin ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.ap-northeast-2.amazonaws.com
-
-      - name: Build, tag, and push image to Amazon ECR
-        id: build-image
-        env:
-          ECR_REGISTRY: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.ap-northeast-2.amazonaws.com
-          ECR_REPOSITORY: blink
-          IMAGE_TAG: latest
-        run: |
-          # Docker 이미지 빌드
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
-          
-          # 빌드한 이미지를 Amazon ECR로 푸시
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-          
-          # 빌드된 이미지의 정보 출력
-          echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
-
       - name: Get current time
         uses: 1466587594/get-current-time@v2
         id: current-time
@@ -72,19 +42,20 @@ jobs:
       - name: Generate deployment package
         run: |
           mkdir -p deploy
+          cp build/libs/*.jar deploy/application.jar
+          cp Procfile deploy/Procfile
           cp -r .ebextensions deploy/.ebextensions
-          cp Dockerrun.aws.json deploy/Dockerrun.aws.json
           cp -r .platform deploy/.platform
           cd deploy && zip -r deploy.zip .
 
       - name: BeanStalk Deploy
-        uses: einaregilsson/beanstalk-deploy@v14
+        uses: einaregilsson/beanstalk-deploy@v20
         with:
           aws_access_key: ${{ secrets.AWS_ACTION_ACCESS_KEY_ID }}
           aws_secret_key: ${{ secrets.AWS_ACTION_SECRET_ACCESS_KEY }}
           region: 'ap-northeast-2'
-          application_name: 'blink-prod'
-          environment_name: 'Blink-prod-env'
+          application_name: 'blink-dev'
+          environment_name: 'Blink-dev-env'
           version_label: github-action-${{ steps.current-time.outputs.formattedTime }}
           deployment_package: deploy/deploy.zip
           wait_for_deployment: false
