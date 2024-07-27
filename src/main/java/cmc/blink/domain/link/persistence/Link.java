@@ -54,4 +54,8 @@ public class Link extends BaseTimeEntity {
     @Column
     private LocalDate trashMovedDate;
 
+    public void updateTitle(String title) {
+        this.title = title;
+    }
+
 }

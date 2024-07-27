@@ -105,5 +105,13 @@ public class LinkService {
         return LinkMapper.toLinkInfo(title, type, contents, imageUrl);
     }
 
+    @Transactional
+    public void updateTitle(LinkRequest.LinkTitleUpdateDto updateDto, Long linkId, User user) {
+        Link link = linkQueryAdapter.findById(linkId);
 
+        if (link.getUser() != user)
+            throw new LinkException(ErrorCode.LINK_ACCESS_DENIED);
+
+        linkCommandAdapter.updateTitle(link, updateDto);
+    }
 }
