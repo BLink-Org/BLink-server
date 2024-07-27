@@ -21,5 +21,10 @@ public class FolderCommandAdapter {
         folderRepository.save(folder);
     }
 
+    public Folder updateLastLinkedAt(Folder folder) {
+        folder.updatelastLinkedAt();
+        return folderRepository.save(folder);
+    }
+
 
 }

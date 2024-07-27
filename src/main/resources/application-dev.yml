@@ -6,7 +6,7 @@ spring:
     password: ${AWS_DB_PASSWORD}
   jpa:
     hibernate:
-      ddl-auto: create
+      ddl-auto: update
     properties:
       hibernate:
         dialect: org.hibernate.dialect.MySQL8Dialect
@@ -22,7 +22,7 @@ spring:
       client:
         registration:
           google:
-            redirect-uri: https://blink-bookmarklink.com/login/oauth2/code/google
+            redirect-uri: http://blink-bookmarklink.com/login/oauth2/code/google
 oauth:
   success-redirect-url: https://blink-bookmarklink.com/
 

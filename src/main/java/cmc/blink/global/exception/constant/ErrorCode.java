@@ -50,6 +50,13 @@ public enum ErrorCode {
     DUPLICATE_FOLDER_TITLE(HttpStatus.BAD_REQUEST, 2400, "이미 존재하는 폴더 제목입니다."),
     FOLDER_NOT_FOUND(HttpStatus.NOT_FOUND, 2401, "폴더를 찾을 수 없습니다."),
     FOLDER_ACCESS_DENIED(HttpStatus.FORBIDDEN, 2402, "해당 폴더에 대한 접근이 거부되었습니다."),
+
+    // 링크 관련 에러
+    DUPLICATE_LINK_URL(HttpStatus.BAD_REQUEST, 2600, "이미 존재하는 링크 url입니다."),
+    INVALID_LINK_URL(HttpStatus.BAD_REQUEST, 2601, "유효하지 않은 url입니다."),
+    LINK_SCRAPED_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, 2602, "링크 url 스크랩 과정에서 에러가 발생했습니다."),
+    LINK_NOT_FOUND(HttpStatus.NOT_FOUND, 2603, "링크를 찾을 수 없습니다."),
+    LINK_ACCESS_DENIED(HttpStatus.FORBIDDEN, 2604, "해당 링크에 대한 접근이 거부되었습니다."),
     ;
 
     private final HttpStatus httpStatus;

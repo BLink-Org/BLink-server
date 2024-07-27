@@ -35,6 +35,7 @@ public class FolderService {
         }
     }
 
+    @Transactional
     public void updateTitle(FolderRequest.FolderTitleUpdateDto updateDto, Long folderId, User user) {
 
         Folder folder = folderQueryAdapter.findById(folderId);

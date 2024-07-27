@@ -36,10 +36,10 @@ public class Link extends BaseTimeEntity {
     @Column
     private String type;
 
-    @Column
+    @Column(columnDefinition = "VARCHAR(2000)")
     private String contents;
 
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "VARCHAR(2000)")
     private String imageUrl;
 
     @Column
@@ -53,5 +53,9 @@ public class Link extends BaseTimeEntity {
 
     @Column
     private LocalDate trashMovedDate;
+
+    public void updateTitle(String title) {
+        this.title = title;
+    }
 
 }
