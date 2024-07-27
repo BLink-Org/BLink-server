@@ -8,6 +8,8 @@ import cmc.blink.global.exception.FolderException;
 import cmc.blink.global.exception.constant.ErrorCode;
 import lombok.RequiredArgsConstructor;
 
+import java.util.List;
+
 @Adapter
 @RequiredArgsConstructor
 public class FolderQueryAdapter {
@@ -17,6 +19,10 @@ public class FolderQueryAdapter {
     public Folder findById(Long folderId) {
         return folderRepository.findById(folderId).orElseThrow(
                 () -> new FolderException(ErrorCode.FOLDER_NOT_FOUND));
+    }
+
+    public List<Folder> findAllById(List<Long> folderIds) {
+        return folderRepository.findAllById(folderIds);
     }
 
     public boolean isFolderTitleDuplicate(String title, User user) {

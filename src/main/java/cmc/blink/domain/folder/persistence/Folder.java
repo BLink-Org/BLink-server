@@ -9,6 +9,8 @@ import org.hibernate.annotations.DynamicUpdate;
 
 import java.time.LocalDateTime;
 
+import static java.time.LocalDateTime.now;
+
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
@@ -37,6 +39,10 @@ public class Folder extends BaseTimeEntity {
 
     public void updateTitle(String title) {
         this.title = title;
+    }
+
+    public void updatelastLinkedAt() {
+        this.lastLinkedAt = now();
     }
 
 }
