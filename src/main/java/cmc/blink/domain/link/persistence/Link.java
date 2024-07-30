@@ -58,4 +58,19 @@ public class Link extends BaseTimeEntity {
         this.title = title;
     }
 
+    public void moveToTrash() {
+        if (!this.isTrash){
+            this.isTrash = true;
+            this.trashMovedDate = LocalDate.now();
+        }
+    }
+
+    public void recoveryFromTrash() {
+        if (this.isTrash) {
+            this.isTrash = false;
+            this.trashMovedDate = null;
+        }
+    }
+
+
 }
