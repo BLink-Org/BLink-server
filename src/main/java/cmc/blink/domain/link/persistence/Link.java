@@ -65,7 +65,7 @@ public class Link extends BaseTimeEntity {
         }
     }
 
-    public void recoveryFromTrash() {
+    public void recoverFromTrash() {
         if (this.isTrash) {
             this.isTrash = false;
             this.trashMovedDate = null;
