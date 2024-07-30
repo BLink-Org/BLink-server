@@ -3,8 +3,11 @@ package cmc.blink.domain.folder.implement;
 import cmc.blink.domain.folder.persistence.Folder;
 import cmc.blink.domain.folder.persistence.FolderRepository;
 import cmc.blink.domain.folder.presentation.dto.FolderRequest;
+import cmc.blink.domain.user.persistence.User;
 import cmc.blink.global.annotation.Adapter;
 import lombok.RequiredArgsConstructor;
+
+import java.util.List;
 
 @Adapter
 @RequiredArgsConstructor
@@ -35,6 +38,14 @@ public class FolderCommandAdapter {
 
         folderRepository.save(folder1);
         folderRepository.save(folder2);
+    }
+
+    public void reassignSortOrders(User user) {
+        List<Folder> folders = folderRepository.findAllByUserOrderBySortOrderAsc(user);
+        for (int i = 0; i < folders.size(); i++) {
+            folders.get(i).updateSortOrder(i + 1);
+            folderRepository.save(folders.get(i));
+        }
     }
 
     public void delete(Folder folder) {

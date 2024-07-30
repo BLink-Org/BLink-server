@@ -116,5 +116,6 @@ public class FolderService {
         });
 
         folderCommandAdapter.delete(folder);
+        folderCommandAdapter.reassignSortOrders(user);
     }
 }
