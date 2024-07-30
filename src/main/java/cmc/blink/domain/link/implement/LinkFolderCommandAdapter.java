@@ -14,4 +14,8 @@ public class LinkFolderCommandAdapter {
     public LinkFolder create(LinkFolder linkFolder) {
         return linkFolderRepository.save(linkFolder);
     }
+
+    public void delete(LinkFolder linkFolder) {
+        linkFolderRepository.delete(linkFolder);
+    }
 }
