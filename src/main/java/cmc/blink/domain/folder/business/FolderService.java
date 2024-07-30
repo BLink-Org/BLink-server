@@ -63,6 +63,42 @@ public class FolderService {
     }
 
     @Transactional
+    public void moveFolderUp(Long folderId, User user){
+        List<Folder> folders = folderQueryAdapter.findAllByUserOrderBySortOrderAsc(user);
+
+        for (int i = 0; i < folders.size(); i++) {
+            if (folders.get(i).getId().equals(folderId) && i > 0) {
+
+                Folder currentFolder = folders.get(i);
+                Folder previousFolder = folders.get(i - 1);
+
+                folderCommandAdapter.swapSortOrder(currentFolder, previousFolder);
+
+                break;
+            }
+        }
+    }
+
+    @Transactional
+    public void moveFolderDown(Long folderId, User user) {
+        List<Folder> folders = folderQueryAdapter.findAllByUserOrderBySortOrderAsc(user);
+
+        for (int i = 0; i < folders.size(); i++) {
+            if (folders.get(i).getId().equals(folderId) && i < folders.size() - 1) {
+
+                Folder currentFolder = folders.get(i);
+                Folder nextFolder = folders.get(i + 1);
+
+                folderCommandAdapter.swapSortOrder(currentFolder, nextFolder);
+
+                break;
+            }
+        }
+
+
+    }
+
+    @Transactional
     public void deleteFolder(Long folderId, User user) {
 
         Folder folder = folderQueryAdapter.findById(folderId);

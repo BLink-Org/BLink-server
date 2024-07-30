@@ -29,6 +29,10 @@ public class FolderQueryAdapter {
         return folderRepository.existsByUserAndTitle(user, title);
     }
 
+    public List<Folder> findAllByUserOrderBySortOrderAsc(User user) {
+        return folderRepository.findAllByUserOrderBySortOrderAsc(user);
+    }
+
     public int countFolderByUser(User user) {
         return folderRepository.countByUser(user);
     }

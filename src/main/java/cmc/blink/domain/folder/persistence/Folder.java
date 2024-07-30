@@ -45,4 +45,8 @@ public class Folder extends BaseTimeEntity {
         this.lastLinkedAt = now();
     }
 
+    public void updateSortOrder(int sortOrder) {
+        this.sortOrder = sortOrder;
+    }
+
 }

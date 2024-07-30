@@ -26,6 +26,17 @@ public class FolderCommandAdapter {
         return folderRepository.save(folder);
     }
 
+    public void swapSortOrder(Folder folder1, Folder folder2) {
+        int sortOrder1 = folder1.getSortOrder();
+        int sortOrder2 = folder2.getSortOrder();
+
+        folder1.updateSortOrder(sortOrder2);
+        folder2.updateSortOrder(sortOrder1);
+
+        folderRepository.save(folder1);
+        folderRepository.save(folder2);
+    }
+
     public void delete(Folder folder) {
         folderRepository.delete(folder);
     }

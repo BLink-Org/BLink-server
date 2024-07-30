@@ -6,6 +6,8 @@ import cmc.blink.domain.folder.presentation.dto.FolderResponse;
 import cmc.blink.domain.user.persistence.User;
 import cmc.blink.global.annotation.AuthUser;
 import cmc.blink.global.common.ApiResponseDto;
+import cmc.blink.global.exception.BadRequestException;
+import cmc.blink.global.exception.constant.ErrorCode;
 import cmc.blink.global.exception.dto.ApiErrorResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -18,6 +20,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "폴더", description = "폴더 API입니다.")
@@ -46,6 +49,32 @@ public class FolderController {
         folderService.updateTitle(updateDto, folderId, user);
 
         return ApiResponseDto.of("폴더 수정이 완료 되었습니다.", null);
+    }
+
+    @PatchMapping("/{folderId}/move")
+    @Operation(summary = "폴더 순서 이동 API", description = "폴더 위로/아래로 이동 API 입니다.")
+    @ApiResponses({
+            @ApiResponse(description = "<<OK>> 폴더 순서 수정 완료.", content = @Content(schema = @Schema(implementation = ApiResponseDto.class))),
+            @ApiResponse(responseCode = "Error Code: 2401", description = "<<BAD_REQUEST>> id로 폴더를 찾을 수 없음.", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
+            @ApiResponse(responseCode = "Error Code: 2402", description = "<<FORBIDDEN>> 해당 폴더의 소유자가 아님.", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
+            @ApiResponse(responseCode = "Error Code: 1005", description = "<<BAD_REQUEST>> 요청 파라미터 오류", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class)))
+    })
+    @Parameters({
+            @Parameter(name = "folderId", description = "폴더의 아이디"),
+            @Parameter(name = "direction", description = "위로 이동: up / 아래로 이동: down")
+    })
+    public ApiResponseDto<?> updateFolderSortOrder(@PathVariable(name = "folderId") Long folderId, @RequestParam(name = "direction") String direction,
+                                               @AuthUser User user) {
+
+        if ("up".equalsIgnoreCase(direction)) {
+            folderService.moveFolderUp(folderId, user);
+        } else if ("down".equalsIgnoreCase(direction)) {
+            folderService.moveFolderDown(folderId, user);
+        } else {
+            throw new BadRequestException(ErrorCode.INVALID_PARAMETER);
+        }
+
+        return ApiResponseDto.of("폴더 순서 수정이 완료 되었습니다.", null);
     }
 
     @PostMapping

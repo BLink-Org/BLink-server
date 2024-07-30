@@ -30,7 +30,8 @@ public enum ErrorCode {
     UNAUTHORIZED(HttpStatus.UNAUTHORIZED, 1002,"인증 정보가 유효하지 않습니다."),
     BAD_REQUEST(HttpStatus.BAD_REQUEST, 1003,"잘못된 요청 입니다."),
     INVALID_DATA(HttpStatus.BAD_REQUEST, 1004, "요청 데이터에 대한 유효성 검사 실패입니다."),
-    INTERNAL_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, 1005,"서버 내부 에러입니다."),
+    INVALID_PARAMETER(HttpStatus.BAD_REQUEST, 1005, "요청 파라미터가 잘못 되었습니다."),
+    INTERNAL_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, 1006, "서버 내부 에러입니다."),
 
     // 인증 관련 에러
     INVALID_OAUTH2_PROVIDER(HttpStatus.UNAUTHORIZED, 2000, "유효하지 않은 OAuth2 프로바이더 요청입니다."),
