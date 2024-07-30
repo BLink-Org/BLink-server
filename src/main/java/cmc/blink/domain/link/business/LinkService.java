@@ -5,8 +5,10 @@ import cmc.blink.domain.folder.implement.FolderQueryAdapter;
 import cmc.blink.domain.folder.persistence.Folder;
 import cmc.blink.domain.link.implement.LinkCommandAdapter;
 import cmc.blink.domain.link.implement.LinkFolderCommandAdapter;
+import cmc.blink.domain.link.implement.LinkFolderQueryAdapter;
 import cmc.blink.domain.link.implement.LinkQueryAdapter;
 import cmc.blink.domain.link.persistence.Link;
+import cmc.blink.domain.link.persistence.LinkFolder;
 import cmc.blink.domain.link.presentation.dto.LinkRequest;
 import cmc.blink.domain.link.presentation.dto.LinkResponse;
 import cmc.blink.domain.user.persistence.User;
@@ -32,6 +34,7 @@ public class LinkService {
     private final LinkQueryAdapter linkQueryAdapter;
     private final FolderQueryAdapter folderQueryAdapter;
     private final FolderCommandAdapter folderCommandAdapter;
+    private final LinkFolderQueryAdapter linkFolderQueryAdapter;
     private final LinkFolderCommandAdapter linkFolderCommandAdapter;
 
     @Transactional
@@ -113,5 +116,25 @@ public class LinkService {
             throw new LinkException(ErrorCode.LINK_ACCESS_DENIED);
 
         linkCommandAdapter.updateTitle(link, updateDto);
+    }
+
+    @Transactional
+    public void moveLink(Long linkId, LinkRequest.LinkFolderMoveDto updateDto, User user) {
+        Link link = linkQueryAdapter.findById(linkId);
+
+        if (link.getUser() != user)
+            throw new LinkException(ErrorCode.LINK_ACCESS_DENIED);
+
+        List<LinkFolder> linkFolders = linkFolderQueryAdapter.findAllByLink(link);
+
+        linkFolders.forEach(linkFolderCommandAdapter::delete);
+
+        if (updateDto.getFolderIdList() != null) {
+            updateDto.getFolderIdList().forEach(folderId -> {
+                Folder folder = folderQueryAdapter.findById(folderId);
+                LinkFolder linkFolder = LinkFolderMapper.toLinkFolder(link, folder);
+                linkFolderCommandAdapter.create(linkFolder);
+            });
+        }
     }
 }
