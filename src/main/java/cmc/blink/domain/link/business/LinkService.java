@@ -137,4 +137,24 @@ public class LinkService {
             });
         }
     }
+
+    @Transactional
+    public void moveLinkToTrash(Long linkId, User user) {
+        Link link = linkQueryAdapter.findById(linkId);
+
+        if (link.getUser() != user)
+            throw new LinkException(ErrorCode.LINK_ACCESS_DENIED);
+
+        linkCommandAdapter.moveToTrash(link);
+    }
+
+    @Transactional
+    public void recoverLinkFromTrash(Long linkId, User user) {
+        Link link = linkQueryAdapter.findById(linkId);
+
+        if (link.getUser() != user)
+            throw new LinkException(ErrorCode.LINK_ACCESS_DENIED);
+
+        linkCommandAdapter.recoverFromTrash(link);
+    }
 }
