@@ -26,5 +26,8 @@ public class FolderCommandAdapter {
         return folderRepository.save(folder);
     }
 
+    public void delete(Folder folder) {
+        folderRepository.delete(folder);
+    }
 
 }

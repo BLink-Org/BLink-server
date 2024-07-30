@@ -20,4 +20,14 @@ public class LinkCommandAdapter {
         link.updateTitle(updateDto.getTitle());
         return linkRepository.save(link);
     }
+
+    public Link moveToTrash(Link link) {
+        link.moveToTrash();
+        return linkRepository.save(link);
+    }
+
+    public Link recoveryFromTrash(Link link) {
+        link.recoveryFromTrash();
+        return linkRepository.save(link);
+    }
 }

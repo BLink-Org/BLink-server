@@ -60,6 +60,23 @@ public class FolderController {
         return ApiResponseDto.created("폴더 생성이 완료 되었습니다.", folderService.createFolder(createDto, user));
     }
 
+    @DeleteMapping("/{folderId}")
+    @Operation(summary = "폴더 삭제 API", description = "폴더 삭제 API입니다.")
+    @ApiResponses({
+            @ApiResponse(description = "<<OK>> 폴더 삭제 완료.", content = @Content(schema = @Schema(implementation = ApiResponseDto.class))),
+            @ApiResponse(responseCode = "Error Code: 2401", description = "<<BAD_REQUEST>> id로 폴더를 찾을 수 없음.", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
+            @ApiResponse(responseCode = "Error Code: 2402", description = "<<FORBIDDEN>> 해당 폴더의 소유자가 아님.", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class)))
+    })
+    @Parameters({
+            @Parameter(name = "folderId", description = "폴더의 아이디"),
+    })
+    public ApiResponseDto<?> deleteFolder(@PathVariable(name = "folderId") Long folderId, @AuthUser User user) {
+
+        folderService.deleteFolder(folderId, user);
+
+        return ApiResponseDto.of("폴더 삭제가 완료 되었습니다.", null);
+    }
+
 
 
 }
