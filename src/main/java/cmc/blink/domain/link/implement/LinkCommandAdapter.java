@@ -26,8 +26,12 @@ public class LinkCommandAdapter {
         return linkRepository.save(link);
     }
 
-    public Link recoveryFromTrash(Link link) {
-        link.recoveryFromTrash();
+    public Link recoverFromTrash(Link link) {
+        link.recoverFromTrash();
         return linkRepository.save(link);
+    }
+
+    public void delete(Link link) {
+        linkRepository.delete(link);
     }
 }
