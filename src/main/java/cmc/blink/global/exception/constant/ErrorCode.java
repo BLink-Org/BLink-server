@@ -58,6 +58,7 @@ public enum ErrorCode {
     LINK_SCRAPED_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, 2602, "링크 url 스크랩 과정에서 에러가 발생했습니다."),
     LINK_NOT_FOUND(HttpStatus.NOT_FOUND, 2603, "링크를 찾을 수 없습니다."),
     LINK_ACCESS_DENIED(HttpStatus.FORBIDDEN, 2604, "해당 링크에 대한 접근이 거부되었습니다."),
+    LINK_DELETE_DENIED(HttpStatus.BAD_REQUEST, 2605, "휴지통에 있는 링크만 영구삭제 할 수 있습니다."),
     ;
 
     private final HttpStatus httpStatus;

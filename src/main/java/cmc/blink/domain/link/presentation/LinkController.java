@@ -113,5 +113,24 @@ public class LinkController {
         return ApiResponseDto.of("휴지통에서 복구가 완료 되었습니다.", null);
     }
 
+    @DeleteMapping("/{linkId}")
+    @Operation(summary = "휴지통에서 링크 영구삭제 API", description = "휴지통에서 링크를 영구삭제하는 API입니다.")
+    @ApiResponses({
+            @ApiResponse(description = "<<OK>> 링크 영구삭제 완료.", content = @Content(schema = @Schema(implementation = ApiResponseDto.class))),
+            @ApiResponse(responseCode = "Error Code: 2603", description = "<<BAD_REQUEST>> id로 링크를 찾을 수 없음.", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
+            @ApiResponse(responseCode = "Error Code: 2604", description = "<<FORBIDDEN>> 해당 링크의 소유자가 아님.", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
+            @ApiResponse(responseCode = "Error Code: 2605", description = "<<BAD_REQUEST>> 휴지통에 있는 링크만 영구삭제 가능.", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class)))
+
+    })
+    @Parameters({
+            @Parameter(name = "linkId", description = "링크의 아이디")
+    })
+    public ApiResponseDto<?> deleteLink(@PathVariable(name = "linkId") Long linkId, @AuthUser User user) {
+
+        linkService.deleteLink(linkId, user);
+
+        return ApiResponseDto.of("링크 영구삭제가 완료 되었습니다.", null);
+    }
+
 }
 

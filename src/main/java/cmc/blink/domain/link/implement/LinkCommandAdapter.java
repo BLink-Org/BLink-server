@@ -30,4 +30,8 @@ public class LinkCommandAdapter {
         link.recoverFromTrash();
         return linkRepository.save(link);
     }
+
+    public void delete(Link link) {
+        linkRepository.delete(link);
+    }
 }

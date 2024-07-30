@@ -157,4 +157,21 @@ public class LinkService {
 
         linkCommandAdapter.recoverFromTrash(link);
     }
+
+    @Transactional
+    public void deleteLink(Long linkId, User user) {
+        Link link = linkQueryAdapter.findById(linkId);
+
+        if (link.getUser() != user)
+            throw new LinkException(ErrorCode.LINK_ACCESS_DENIED);
+
+        if (!link.isTrash())
+            throw new LinkException(ErrorCode.LINK_DELETE_DENIED);
+
+        List<LinkFolder> linkFolders = linkFolderQueryAdapter.findAllByLink(link);
+
+        linkFolders.forEach(linkFolderCommandAdapter::delete);
+
+        linkCommandAdapter.delete(link);
+    }
 }
