@@ -58,7 +58,25 @@ public class LinkController {
         linkService.updateTitle(updateDto, linkId, user);
 
         return ApiResponseDto.of("링크 제목 수정이 완료 되었습니다.", null);
+    }
 
+    @PostMapping("/{linkId}/move")
+    @Operation(summary = "링크 저장 폴더 변경 API", description = "링크 저장 폴더 변경 API입니다.\n" +
+            "폴더 없이 저장 선택 시 folderIdList 비워서 보내주시면 됩니다~~")
+    @ApiResponses({
+            @ApiResponse(description = "<<OK>> 링크 저장 폴더 수정 완료.", content = @Content(schema = @Schema(implementation = ApiResponseDto.class))),
+            @ApiResponse(responseCode = "Error Code: 2603", description = "<<BAD_REQUEST>> id로 링크를 찾을 수 없음.", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
+            @ApiResponse(responseCode = "Error Code: 2604", description = "<<FORBIDDEN>> 해당 링크의 소유자가 아님.", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class)))
+    })
+    @Parameters({
+            @Parameter(name = "linkId", description = "링크의 아이디")
+    })
+    public ApiResponseDto<?> moveLink(@PathVariable(name = "linkId") Long linkId
+            , @RequestBody LinkRequest.LinkFolderMoveDto updateDto, @AuthUser User user) {
+
+        linkService.moveLink(linkId, updateDto, user);
+
+        return ApiResponseDto.of("링크 저장 폴더 수정이 완료 되었습니다.", null);
     }
 
 

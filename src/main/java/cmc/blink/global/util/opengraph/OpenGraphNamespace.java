@@ -1,5 +1,9 @@
 package cmc.blink.global.util.opengraph;
 
+/**
+ * Represents an OpenGraph namespace
+ * @author Callum Jones
+ */
 public class OpenGraphNamespace
 {
     private String prefix;

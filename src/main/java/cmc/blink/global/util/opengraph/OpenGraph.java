@@ -13,6 +13,12 @@ import java.util.Hashtable;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/**
+ * A Java object representation of an Open Graph enabled webpage.
+ * A simplified layer over a Hastable.
+ *
+ * @author Callum Jones
+ */
 public class OpenGraph
 {
     private String pageUrl;

@@ -24,4 +24,9 @@ public class LinkRequest {
         @NotBlank(message = "링크 제목은 공백으로 설정할 수 없습니다.")
         String title;
     }
+
+    @Getter
+    public static class LinkFolderMoveDto {
+        List<Long> folderIdList;
+    }
 }
