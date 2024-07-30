@@ -2,6 +2,10 @@ package cmc.blink.global.util.opengraph;
 
 import java.net.URL;
 
+/**
+ * Represents OpenGraph enabled meta data for a specific document
+ * @author Callum Jones
+ */
 public class MetaElement
 {
     private OpenGraphNamespace namespace; //either "og" an NS specific
