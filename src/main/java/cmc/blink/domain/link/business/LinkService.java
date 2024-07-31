@@ -174,4 +174,13 @@ public class LinkService {
 
         linkCommandAdapter.delete(link);
     }
+
+    public void toggleLink(Long linkId, User user) {
+        Link link = linkQueryAdapter.findById(linkId);
+
+        if (link.getUser() != user)
+            throw new LinkException(ErrorCode.LINK_ACCESS_DENIED);
+
+        linkCommandAdapter.toggleLink(link);
+    }
 }
