@@ -113,6 +113,23 @@ public class LinkController {
         return ApiResponseDto.of("휴지통에서 복구가 완료 되었습니다.", null);
     }
 
+    @PatchMapping("/{linkId}/pin/toggle")
+    @Operation(summary = "링크 고정 토글 API", description = "링크 고정/ 고정 취소 토글 API입니다.")
+    @ApiResponses({
+            @ApiResponse(description = "<<OK>> 링크 고정 토글 완료.", content = @Content(schema = @Schema(implementation = ApiResponseDto.class))),
+            @ApiResponse(responseCode = "Error Code: 2603", description = "<<BAD_REQUEST>> id로 링크를 찾을 수 없음.", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
+            @ApiResponse(responseCode = "Error Code: 2604", description = "<<FORBIDDEN>> 해당 링크의 소유자가 아님.", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class)))
+    })
+    @Parameters({
+            @Parameter(name = "linkId", description = "링크의 아이디")
+    })
+    public ApiResponseDto<?> toggleLink(@PathVariable(name = "linkId") Long linkId, @AuthUser User user) {
+
+        linkService.toggleLink(linkId, user);
+
+        return ApiResponseDto.of("링크 고정 토글이 완료 되었습니다.", null);
+    }
+
     @DeleteMapping("/{linkId}")
     @Operation(summary = "휴지통에서 링크 영구삭제 API", description = "휴지통에서 링크를 영구삭제하는 API입니다.")
     @ApiResponses({

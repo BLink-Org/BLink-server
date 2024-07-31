@@ -4,6 +4,7 @@ import cmc.blink.domain.user.persistence.User;
 import cmc.blink.global.common.BaseTimeEntity;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
 
@@ -45,14 +46,20 @@ public class Link extends BaseTimeEntity {
     @Column
     private LocalDateTime lastViewedAt;
 
-    @Column
+    @ColumnDefault("false")
     private boolean isExcluded;
 
-    @Column
+    @ColumnDefault("false")
     private boolean isTrash;
 
     @Column
     private LocalDate trashMovedDate;
+
+    @ColumnDefault("false")
+    private boolean isPinned;
+
+    @Column
+    private LocalDateTime pinnedAt;
 
     public void updateTitle(String title) {
         this.title = title;
@@ -70,6 +77,18 @@ public class Link extends BaseTimeEntity {
             this.isTrash = false;
             this.trashMovedDate = null;
         }
+    }
+
+    public boolean togglePin() {
+        if (this.isPinned) {
+            this.isPinned = false;
+            this.pinnedAt = null;
+        } else {
+            this.isPinned = true;
+            this.pinnedAt = LocalDateTime.now();
+        }
+
+        return this.isPinned;
     }
 
 
