@@ -9,4 +9,6 @@ public interface LinkFolderRepository extends JpaRepository<LinkFolder, Long> {
 
     List<LinkFolder> findAllByFolder(Folder folder);
     List<LinkFolder> findAllByLink(Link link);
+
+    int countByFolder(Folder folder);
 }

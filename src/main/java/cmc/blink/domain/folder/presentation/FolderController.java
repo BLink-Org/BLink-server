@@ -31,6 +31,12 @@ public class FolderController {
 
     private final FolderService folderService;
 
+    @GetMapping
+    @Operation(summary = "폴더 목록 조회 API", description = "폴더 목록 조회 API입니다.")
+    public ApiResponseDto<FolderResponse.FolderListDto> findFolders (@AuthUser User user) {
+        return ApiResponseDto.of(folderService.findFolders(user));
+    }
+
     @PatchMapping("/{folderId}")
     @Operation(summary = "폴더 제목 수정 API", description = "폴더 제목 수정 API입니다.")
     @ApiResponses({

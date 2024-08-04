@@ -18,6 +18,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -30,6 +31,31 @@ public class FolderService {
     private final LinkFolderCommandAdapter linkFolderCommandAdapter;
     private final LinkFolderQueryAdapter linkFolderQueryAdapter;
     private final LinkQueryAdapter linkQueryAdapter;
+
+    @Transactional
+    public FolderResponse.FolderListDto findFolders(User user) {
+
+        int linkTotalCount = linkQueryAdapter.countByUser(user);
+
+        // findByUser로 유저의 총 Folder를 찾고, 각 Folder 마다 findAllByUserAndFolder로 LinkFolder 개수 찾아서 FolderMapper의 toFolderDto
+        List<Folder> folderList = folderQueryAdapter.findAllByUserOrderBySortOrderAsc(user);
+        List<FolderResponse.FolderDto> folderDtos = new ArrayList<>();
+
+        Folder recentFolder = folderQueryAdapter.findLastLinkedFolder(user);
+
+        Long recentFolderId = recentFolder != null ? recentFolder.getId() : null;
+
+        for (Folder folder: folderList) {
+            int linkCount = linkFolderQueryAdapter.countByFolder(folder);
+            boolean isRecent = folder.getId().equals(recentFolderId);
+            FolderResponse.FolderDto folderDto = FolderMapper.toFolderDto(folder, linkCount, isRecent);
+            folderDtos.add(folderDto);
+        }
+
+        int noFolderLinkCount = linkQueryAdapter.countByUserAndNoFolder(user);
+
+        return FolderMapper.toFolderListDto(folderDtos, linkTotalCount, noFolderLinkCount);
+    }
 
     @Transactional
     public FolderResponse.FolderCreateDto createFolder(FolderRequest.FolderCreateDto createDto, User user) {
