@@ -22,4 +22,11 @@ public class LinkQueryAdapter {
         return linkRepository.findById(id).orElseThrow(()-> new LinkException(ErrorCode.LINK_NOT_FOUND));
     }
 
+    public int countByUser(User user) {
+        return linkRepository.countByUser(user);
+    }
+
+    public int countByUserAndNoFolder(User user){
+        return linkRepository.countByUserAndNoFolder(user);
+    }
 }

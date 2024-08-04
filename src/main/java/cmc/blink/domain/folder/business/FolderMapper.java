@@ -7,6 +7,8 @@ import cmc.blink.domain.user.persistence.User;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class FolderMapper {
 
@@ -15,6 +17,24 @@ public class FolderMapper {
                 .user(user)
                 .title(createDto.getTitle())
                 .sortOrder(sortOrder)
+                .build();
+    }
+
+    public static FolderResponse.FolderDto toFolderDto(Folder folder, int linkCount, boolean isRecent){
+        return FolderResponse.FolderDto.builder()
+                .id(folder.getId())
+                .title(folder.getTitle())
+                .sortOrder(folder.getSortOrder())
+                .linkCount(linkCount)
+                .isRecent(isRecent)
+                .build();
+    }
+
+    public static FolderResponse.FolderListDto toFolderListDto (List<FolderResponse.FolderDto> folderList, int linkTotalCount, int noFolderLinkCount) {
+        return FolderResponse.FolderListDto.builder()
+                .linkTotalCount(linkTotalCount)
+                .folderDtos(folderList)
+                .noFolderLinkCount(noFolderLinkCount)
                 .build();
     }
 

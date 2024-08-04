@@ -26,4 +26,9 @@ public class LinkFolderQueryAdapter {
     public boolean isOnlyLinkFolder(Link link) {
         return findAllByLink(link).isEmpty();
     }
+
+    public int countByFolder(Folder folder) {
+        return linkFolderRepository.countByFolder(folder);
+    }
+
 }

@@ -36,4 +36,9 @@ public class FolderQueryAdapter {
     public int countFolderByUser(User user) {
         return folderRepository.countByUser(user);
     }
+
+    public Folder findLastLinkedFolder(User user) {
+        List<Folder> recentFolders = folderRepository.findTop1ByUserOrderByLastLinkedAtDesc(user);
+        return recentFolders.isEmpty() ? null : recentFolders.get(0);
+    }
 }
