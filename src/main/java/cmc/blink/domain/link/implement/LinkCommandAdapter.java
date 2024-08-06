@@ -21,6 +21,11 @@ public class LinkCommandAdapter {
         return linkRepository.save(link);
     }
 
+    public Link updateLastViewedAt(Link link) {
+        link.updateLastViewedAt();
+        return linkRepository.save(link);
+    }
+
     public Link moveToTrash(Link link) {
         link.moveToTrash();
         return linkRepository.save(link);

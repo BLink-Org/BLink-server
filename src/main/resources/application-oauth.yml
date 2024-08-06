@@ -7,7 +7,7 @@ spring:
             client-name: google
             client-id: 166300243749-4cucbmanbv2gb6khpasbofihlvlimguu.apps.googleusercontent.com
             client-secret: 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
-            redirect-uri: http://localhost:8080/login/oauth2/code/google
+            redirect-uri: https://www.blink-bookmarklink.com/login/oauth2/code/google
             authorization-grant-type: authorization_code
             scope:
               - email
