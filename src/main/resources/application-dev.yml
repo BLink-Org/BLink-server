@@ -22,7 +22,7 @@ spring:
       client:
         registration:
           google:
-            redirect-uri: https://www.blink-bookmarklink.com/login/oauth2/code/google
+            redirect-uri: https://www.blink-bookmarklink.com/api/auth/oauth2/login/oauth2/code/google
 oauth:
   success-redirect-url: https://www.blink-bookmarklink.com/health
 

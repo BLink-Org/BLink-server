@@ -6,7 +6,7 @@ spring:
     password: 1212
   jpa:
     hibernate:
-      ddl-auto: create
+      ddl-auto: update
     properties:
       hibernate:
         dialect: org.hibernate.dialect.MySQL8Dialect
@@ -22,7 +22,7 @@ spring:
       client:
         registration:
           google:
-            redirect-uri: http://localhost:8080/login/oauth2/code/google
+            redirect-uri: http://localhost:8080/api/auth/oauth2/login/oauth2/code/google
 oauth:
   success-redirect-url: http://localhost:3000
 
