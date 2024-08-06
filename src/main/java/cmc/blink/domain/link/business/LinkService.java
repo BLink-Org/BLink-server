@@ -12,19 +12,26 @@ import cmc.blink.domain.link.persistence.LinkFolder;
 import cmc.blink.domain.link.presentation.dto.LinkRequest;
 import cmc.blink.domain.link.presentation.dto.LinkResponse;
 import cmc.blink.domain.user.persistence.User;
+import cmc.blink.global.exception.FolderException;
 import cmc.blink.global.exception.LinkException;
 import cmc.blink.global.exception.constant.ErrorCode;
 import cmc.blink.global.util.opengraph.OpenGraph;
 import lombok.RequiredArgsConstructor;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.util.HtmlUtils;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -175,6 +182,7 @@ public class LinkService {
         linkCommandAdapter.delete(link);
     }
 
+    @Transactional
     public void toggleLink(Long linkId, User user) {
         Link link = linkQueryAdapter.findById(linkId);
 
@@ -182,5 +190,82 @@ public class LinkService {
             throw new LinkException(ErrorCode.LINK_ACCESS_DENIED);
 
         linkCommandAdapter.toggleLink(link);
+    }
+
+    @Transactional
+    public LinkResponse.LinkListDto findLinkFolderPaging(User user, Long folderId, String sortBy, String direction, int page, int size) {
+        Folder folder = folderQueryAdapter.findById(folderId);
+
+        if (folder.getUser() != user) {
+            throw new FolderException(ErrorCode.FOLDER_ACCESS_DENIED);
+        }
+
+        Pageable pageable = PageRequest.of(page, size, Sort.Direction.fromString(direction), sortBy);
+        List<LinkFolder> linkFolders = linkFolderQueryAdapter.findAllByFolder(folder);
+        List<Long> linkIds = linkFolders.stream().map(linkFolder -> linkFolder.getLink().getId()).collect(Collectors.toList());
+
+        Page<Link> linksPage = linkQueryAdapter.findByIdsAndUserAndIsTrashFalse(linkIds, user, pageable);
+
+        List<Link> links = linksPage.getContent();
+        int linkCount = linkFolders.size();
+
+        List<LinkResponse.LinkDto> linkDtos = links.stream()
+                .map(link -> LinkMapper.toLinkDto(link, folder.getTitle()))
+                .collect(Collectors.toList());
+
+        return LinkMapper.toLinkListDto(linkDtos, linkCount);
+
+    }
+
+    @Transactional
+    public LinkResponse.LinkListDto findLinkPaging(User user, String sortBy, String direction, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.Direction.fromString(direction), sortBy);
+
+        Page<Link> linksPage = linkQueryAdapter.findByUserAndIsTrashFalse(user, pageable);
+
+        List<Link> links = linksPage.getContent();
+        int linkCount = linkQueryAdapter.countByUserAndIsTrashFalse(user);
+
+        Map<Long, String> folderNamesMap = linkFolderQueryAdapter.findFirstFolderNamesForLinks(links);
+
+        List<LinkResponse.LinkDto> linkDtos = links.stream()
+                .map(link -> LinkMapper.toLinkDto(link, folderNamesMap.getOrDefault(link.getId(), null))).toList();
+
+        return LinkMapper.toLinkListDto(linkDtos, linkCount);
+    }
+
+    @Transactional
+    public LinkResponse.LinkListDto findPinnedLinks(User user, String sortBy, String direction, int page, int size) {
+
+        Pageable pageable = PageRequest.of(page, size, Sort.Direction.fromString(direction), sortBy);
+        Page<Link> linksPage = linkQueryAdapter.findPinnedLinksByUserAndIsTrashFalse(user, pageable);
+
+        List<Link> links = linksPage.getContent();
+        int linkCount = linkQueryAdapter.countPinnedLinksByUserAndIsTrashFalse(user);
+
+        Map<Long, String> folderNamesMap = linkFolderQueryAdapter.findFirstFolderNamesForLinks(links);
+
+        List<LinkResponse.LinkDto> linkDtos = links.stream()
+                .map(link -> LinkMapper.toLinkDto(link, folderNamesMap.getOrDefault(link.getId(), null)))
+                .collect(Collectors.toList());
+
+        return LinkMapper.toLinkListDto(linkDtos, linkCount);
+    }
+
+    @Transactional
+    public LinkResponse.LinkListDto findTrashLinks(User user, String sortBy, String direction, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.Direction.fromString(direction), sortBy);
+        Page<Link> linksPage = linkQueryAdapter.findTrashLinksByUser(user, pageable);
+
+        List<Link> links = linksPage.getContent();
+        int linkCount = linkQueryAdapter.countTrashLinksByUser(user);
+
+        Map<Long, String> folderNamesMap = linkFolderQueryAdapter.findFirstFolderNamesForLinks(links);
+
+        List<LinkResponse.LinkDto> linkDtos = links.stream()
+                .map(link -> LinkMapper.toLinkDto(link, folderNamesMap.getOrDefault(link.getId(), null)))
+                .collect(Collectors.toList());
+
+        return LinkMapper.toLinkListDto(linkDtos, linkCount);
     }
 }
