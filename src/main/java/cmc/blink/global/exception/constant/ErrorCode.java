@@ -45,6 +45,7 @@ public enum ErrorCode {
 
     // 유저 관련 에러
     USER_NOT_FOUND_EXCEPTION(HttpStatus.NOT_FOUND, 2200, "사용자를 찾을 수 없습니다."),
+    USER_STATUS_NOT_ACTIVE(HttpStatus.BAD_REQUEST, 2201, "비활성화 상태의 사용자는 이용할 수 없습니다."),
 
 
     // 폴더 관련 에러
@@ -59,6 +60,12 @@ public enum ErrorCode {
     LINK_NOT_FOUND(HttpStatus.NOT_FOUND, 2603, "링크를 찾을 수 없습니다."),
     LINK_ACCESS_DENIED(HttpStatus.FORBIDDEN, 2604, "해당 링크에 대한 접근이 거부되었습니다."),
     LINK_DELETE_DENIED(HttpStatus.BAD_REQUEST, 2605, "휴지통에 있는 링크만 영구삭제 할 수 있습니다."),
+
+
+    // Feign 에러
+    GOOGLE_FEIGN_CLIENT_ERROR_400(HttpStatus.BAD_REQUEST, 2800, "Google Feign Client 400번대 에러 발생"),
+    GOOGLE_FEIGN_CLIENT_ERROR_500(HttpStatus.INTERNAL_SERVER_ERROR, 2801, "Google Feign Client 500번대 에러 발생"),
+
     ;
 
     private final HttpStatus httpStatus;

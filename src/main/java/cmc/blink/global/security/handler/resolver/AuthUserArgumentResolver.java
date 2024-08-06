@@ -1,8 +1,10 @@
 package cmc.blink.global.security.handler.resolver;
 
 import cmc.blink.domain.user.implement.UserQueryAdapter;
+import cmc.blink.domain.user.persistence.Status;
 import cmc.blink.domain.user.persistence.User;
 import cmc.blink.global.annotation.AuthUser;
+import cmc.blink.global.exception.BadRequestException;
 import cmc.blink.global.exception.NotFoundException;
 import cmc.blink.global.exception.constant.ErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -47,7 +49,12 @@ public class AuthUserArgumentResolver implements HandlerMethodArgumentResolver {
 
         String email = userDetails.getUsername();
 
-        return userQueryAdapter.findByEmail(email)
+        User user = userQueryAdapter.findByEmail(email)
                 .orElseThrow(()-> new NotFoundException(ErrorCode.USER_NOT_FOUND_EXCEPTION));
+
+        if (!(user.getStatus().equals(Status.ACTIVE)))
+            throw new BadRequestException(ErrorCode.USER_STATUS_NOT_ACTIVE);
+
+        return user;
     }
 }
