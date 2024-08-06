@@ -65,6 +65,10 @@ public class Link extends BaseTimeEntity {
         this.title = title;
     }
 
+    public void updateLastViewedAt() {
+        this.lastViewedAt = LocalDateTime.now();
+    }
+
     public void moveToTrash() {
         if (!this.isTrash){
             this.isTrash = true;

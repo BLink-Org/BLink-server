@@ -1,7 +1,6 @@
 package cmc.blink.domain.link.presentation;
 
 import cmc.blink.domain.link.business.LinkService;
-import cmc.blink.domain.link.persistence.Link;
 import cmc.blink.domain.link.presentation.dto.LinkRequest;
 import cmc.blink.domain.link.presentation.dto.LinkResponse;
 import cmc.blink.domain.user.persistence.User;
@@ -18,11 +17,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @Tag(name="링크", description = "링크 API 입니다.")
 @RestController
@@ -145,6 +141,23 @@ public class LinkController {
 
         return ApiResponseDto.of("링크 저장 폴더 수정이 완료 되었습니다.", null);
     }
+
+    @PatchMapping("/{linkId}/view")
+    @Operation(summary = "링크 조회 API", description = "특정 링크를 읽을 때 해당 링크의 조회일시를 업데이트하기 위한 API입니다.")
+    @ApiResponses({
+            @ApiResponse(description = "<<OK>> 링크 조회일시 업데이트 완료.", content = @Content(schema = @Schema(implementation = ApiResponseDto.class))),
+            @ApiResponse(responseCode = "Error Code: 2603", description = "<<BAD_REQUEST>> id로 링크를 찾을 수 없음.", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
+            @ApiResponse(responseCode = "Error Code: 2604", description = "<<FORBIDDEN>> 해당 링크의 소유자가 아님.", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class)))
+    })
+    @Parameters({
+            @Parameter(name = "linkId", description = "링크의 아이디")
+    })
+    public ApiResponseDto<?> updateLinkLastViewedAt(@PathVariable(name = "linkId") Long linkId, @AuthUser User user){
+        linkService.updateLastViewedAt(linkId, user);
+
+        return ApiResponseDto.of("링크 조회일시 업데이트가 완료되었습니다.", null);
+    }
+
 
     @PatchMapping("/{linkId}/trash/move")
     @Operation(summary = "링크 휴지통 이동 API", description = "링크를 휴지통으로 이동하는 API입니다.")

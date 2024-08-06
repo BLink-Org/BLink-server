@@ -126,6 +126,16 @@ public class LinkService {
     }
 
     @Transactional
+    public void updateLastViewedAt(Long linkId, User user) {
+        Link link = linkQueryAdapter.findById(linkId);
+
+        if (link.getUser() != user)
+            throw new LinkException(ErrorCode.LINK_ACCESS_DENIED);
+
+        linkCommandAdapter.updateLastViewedAt(link);
+    }
+
+    @Transactional
     public void moveLink(Long linkId, LinkRequest.LinkFolderMoveDto updateDto, User user) {
         Link link = linkQueryAdapter.findById(linkId);
 
