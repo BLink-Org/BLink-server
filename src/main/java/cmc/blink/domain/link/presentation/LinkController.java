@@ -1,6 +1,7 @@
 package cmc.blink.domain.link.presentation;
 
 import cmc.blink.domain.link.business.LinkService;
+import cmc.blink.domain.link.persistence.Link;
 import cmc.blink.domain.link.presentation.dto.LinkRequest;
 import cmc.blink.domain.link.presentation.dto.LinkResponse;
 import cmc.blink.domain.user.persistence.User;
@@ -17,16 +18,82 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
-@Tag(name="링크 API", description = "링크 API 입니다.")
+import java.util.List;
+
+@Tag(name="링크", description = "링크 API 입니다.")
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/links")
 public class LinkController {
 
     private final LinkService linkService;
+
+    @GetMapping
+    @Operation(summary = "링크 목록 조회 API", description = "링크 목록 조회 API입니다.")
+    @Parameters({
+            @Parameter(name = "folderId", description = """
+                    폴더의 아이디
+                    
+                    홈 - 전체 링크 조회 : folderId 없이 /
+                    각 폴더에 저장된 링크 조회 : 해당 folderId
+
+                    담아서 요청 주시면 됩니다 ❗❗"""),
+            @Parameter(name = "sortBy", description = "<정렬 기준>\n저장순: createdAt / 제목순: title"),
+            @Parameter(name = "direction", description = "<정렬 방향>\n최근저장순, (ㅎ-A): desc / 과거저장순, (A-ㅎ): asc"),
+            @Parameter(name = "page", description = "페이지 번호, ❗❗ 첫 페이지는 0번 입니다 ❗❗"),
+            @Parameter(name = "size", description = "페이징 사이즈")
+    })
+    public ApiResponseDto<LinkResponse.LinkListDto> findAllLinks (@RequestParam(required = false, name = "folderId")Long folderId,
+                                                                  @RequestParam(defaultValue = "createdAt", name = "sortBy") String sortBy,
+                                                                  @RequestParam(defaultValue = "desc", name = "direction") String direction,
+                                                                  @RequestParam(defaultValue = "0", name = "page") int page,
+                                                                  @RequestParam(defaultValue = "10", name = "size") int size,
+                                                                  @AuthUser User user) {
+        LinkResponse.LinkListDto linkListDto;
+
+        if (folderId != null)
+            linkListDto = linkService.findLinkFolderPaging(user, folderId, sortBy, direction, page, size);
+        else
+            linkListDto = linkService.findLinkPaging(user, sortBy, direction, page, size);
+
+        return ApiResponseDto.of(linkListDto);
+    }
+
+    @GetMapping("/pinned")
+    @Operation(summary = "핀 고정 링크 목록 조회 API", description = "핀 고정 링크 목록 조회 API입니다.")
+    @Parameters({
+            @Parameter(name = "sortBy", description = "<정렬 기준>\n핀 추가순: pinnedAt"),
+            @Parameter(name = "direction", description = "<정렬 방향>\n최근 핀 추가순: desc / 과거 핀 추가순: asc"),
+            @Parameter(name = "page", description = "페이지 번호, ❗❗ 첫 페이지는 0번 입니다 ❗❗"),
+            @Parameter(name = "size", description = "페이징 사이즈")
+    })
+    public ApiResponseDto<LinkResponse.LinkListDto> findPinnedLinks(@RequestParam(defaultValue = "pinnedAt", name = "sortBy") String sortBy,
+                                                                    @RequestParam(defaultValue = "desc", name = "direction") String direction,
+                                                                    @RequestParam(defaultValue = "0", name = "page") int page,
+                                                                    @RequestParam(defaultValue = "10", name = "size") int size,
+                                                                    @AuthUser User user) {
+        return ApiResponseDto.of(linkService.findPinnedLinks(user, sortBy, direction, page, size));
+    }
+
+    @GetMapping("/trash")
+    @Operation(summary = "휴지통 링크 목록 조회 API", description = "휴지통 링크 목록 조회 API입니다.")
+    @Parameters({
+            @Parameter(name = "sortBy", description = "<정렬 기준>\n삭제 순: trashMovedDate"),
+            @Parameter(name = "direction", description = "<정렬 방향>\n최근 삭제순: desc / 과거 삭제순: asc"),
+            @Parameter(name = "page", description = "페이지 번호, ❗❗ 첫 페이지는 0번 입니다 ❗❗"),
+            @Parameter(name = "size", description = "페이징 사이즈")
+    })
+    public ApiResponseDto<LinkResponse.LinkListDto> findTrashLinks(@RequestParam(defaultValue = "trashMovedDate", name = "sortBy") String sortBy,
+                                                                   @RequestParam(defaultValue = "desc", name = "direction") String direction,
+                                                                   @RequestParam(defaultValue = "0", name = "page") int page,
+                                                                   @RequestParam(defaultValue = "10", name = "size") int size,
+                                                                    @AuthUser User user) {
+        return ApiResponseDto.of(linkService.findTrashLinks(user, sortBy, direction, page, size));
+    }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
