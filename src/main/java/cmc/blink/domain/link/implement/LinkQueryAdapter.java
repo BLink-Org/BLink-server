@@ -32,8 +32,8 @@ public class LinkQueryAdapter {
         return linkRepository.countByUser(user);
     }
 
-    public int countByUserAndNoFolder(User user){
-        return linkRepository.countByUserAndNoFolder(user);
+    public int countByUserAndNoFolderAndIsTrashFalse(User user){
+        return linkRepository.countByUserAndNoFolderAndIsTrashFalse(user);
     }
 
     public Page<Link> findByIdsAndUserAndIsTrashFalse(List<Long> linkIds, User user, Pageable pageable) {

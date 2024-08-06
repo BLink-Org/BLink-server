@@ -15,8 +15,8 @@ public interface LinkRepository extends JpaRepository<Link, Long> {
     boolean existsByUrlAndUser(String url, User user);
     int countByUser(User user);
 
-    @Query("SELECT COUNT(l) FROM Link l WHERE l.user = :user AND l.id NOT IN (SELECT lf.link.id FROM LinkFolder lf)")
-    int countByUserAndNoFolder(@Param("user") User user);
+    @Query("SELECT COUNT(l) FROM Link l WHERE l.user = :user AND l.isTrash = false AND l.id NOT IN (SELECT lf.link.id FROM LinkFolder lf)")
+    int countByUserAndNoFolderAndIsTrashFalse(@Param("user") User user);
 
     Page<Link> findByIdInAndUserAndIsTrashFalse(List<Long> ids, User user, Pageable pageable);
 
