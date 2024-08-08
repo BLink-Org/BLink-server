@@ -5,15 +5,13 @@ import cmc.blink.domain.user.implement.UserCommandAdapter;
 import cmc.blink.domain.user.implement.UserQueryAdapter;
 import cmc.blink.domain.user.persistence.Role;
 import cmc.blink.domain.user.persistence.User;
-import cmc.blink.global.security.client.GoogleOauth2Client;
-import cmc.blink.global.security.client.GoogleUserFeignClient;
+import cmc.blink.global.security.client.GoogleTokenVerifierClient;
+import cmc.blink.global.security.dto.AuthRequest;
 import cmc.blink.global.security.dto.AuthResponse;
 import cmc.blink.global.security.dto.GoogleUserInfo;
 import cmc.blink.global.security.dto.Token;
 import cmc.blink.global.security.provider.TokenProvider;
-import com.fasterxml.jackson.databind.JsonNode;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Service;
@@ -26,20 +24,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class AuthService {
 
-    @Value("${spring.security.oauth2.client.registration.google.client-id}")
-    private String GOOGLE_CLIENT_ID;
-
-    @Value("${spring.security.oauth2.client.registration.google.client-secret}")
-    private String GOOGLE_CLIENT_SECRET;
-
-    @Value("${spring.security.oauth2.client.registration.google.redirect-uri}")
-    private String GOOGLE_REDIRECT_URL;
-
-    @Value("${spring.security.oauth2.client.registration.google.authorization-grant-type}")
-    private String GOOGLE_GRANT_TYPE;
-
-    private final GoogleOauth2Client googleOauth2Client;
-    private final GoogleUserFeignClient googleUserFeignClient;
+    private final GoogleTokenVerifierClient googleTokenVerifierClient;
 
     private final TokenProvider tokenProvider;
 
@@ -47,13 +32,10 @@ public class AuthService {
     private final UserCommandAdapter userCommandAdapter;
 
     @Transactional
-    public AuthResponse.LoginResponseDto googleLogin(String code) {
-        JsonNode jsonNode = googleOauth2Client.getAccessToken(code, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GOOGLE_REDIRECT_URL, GOOGLE_GRANT_TYPE);
+    public AuthResponse.LoginResponseDto googleLogin(AuthRequest.GoogleLoginRequestDto requestDto) {
 
-        String accessToken = jsonNode.get("access_token").asText();
+        GoogleUserInfo userInfo = googleTokenVerifierClient.verifyIdToken(requestDto.getIdToken());
 
-        GoogleUserInfo userInfo = googleUserFeignClient.getUserInfo("Bearer "+accessToken);
-        
         Optional<User> optionalUser = userQueryAdapter.findByEmail(userInfo.getEmail());
 
         User user;
