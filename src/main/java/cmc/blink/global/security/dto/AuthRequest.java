@@ -8,4 +8,9 @@ public class AuthRequest {
     public static class GoogleLoginRequestDto {
         String idToken;
     }
+
+    @Getter
+    public static class LogoutRequestDto {
+        String refreshToken;
+    }
 }
