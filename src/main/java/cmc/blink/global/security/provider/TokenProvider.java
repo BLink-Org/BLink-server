@@ -105,7 +105,7 @@ public class TokenProvider {
 
         // 해당 리프레쉬 토큰이 레디스에 존재하는지 확인
         RefreshToken optionalRefreshToken = refreshTokenRepository.findById(refreshToken)
-                .orElseThrow(() -> new JwtAuthenticationException(ErrorCode.INVALID_REFRESH_TOKEN_EXCEPTION));
+                .orElseThrow(() -> new JwtAuthenticationException(ErrorCode.INVALID_REFRESH_TOKEN));
 
         Date now = new Date();
 
@@ -113,7 +113,6 @@ public class TokenProvider {
         String accessToken = Jwts.builder()
                 .setSubject(optionalRefreshToken.getEmail())
                 .claim("auth", optionalRefreshToken.getAuthorities())
-                .claim("uuid", optionalRefreshToken.getUuid())
                 .setIssuedAt(now)
                 .setExpiration(new Date(now.getTime() + tokenValidMillis))
                 .signWith(this.getSignKey(secretKey))

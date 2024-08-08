@@ -13,4 +13,9 @@ public class AuthRequest {
     public static class LogoutRequestDto {
         String refreshToken;
     }
+
+    @Getter
+    public static class ReissueRequestDto {
+        String refreshToken;
+    }
 }

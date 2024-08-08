@@ -36,7 +36,7 @@ public enum ErrorCode {
     // 인증 관련 에러
     INVALID_OAUTH2_PROVIDER(HttpStatus.UNAUTHORIZED, 2000, "유효하지 않은 OAuth2 프로바이더 요청입니다."),
     COOKIE_NOT_FOUND(HttpStatus.NOT_FOUND, 2001, "쿠키가 존재하지 않습니다."),
-    INVALID_REFRESH_TOKEN_EXCEPTION(HttpStatus.UNAUTHORIZED, 2002, "유효하지 않은 리프레시 토큰입니다."),
+    INVALID_REFRESH_TOKEN(HttpStatus.UNAUTHORIZED, 2002, "유효하지 않은 리프레시 토큰입니다."),
     BLACKLISTED_ACCESSTOKEN_EXCEPTION(HttpStatus.UNAUTHORIZED, 2003, "블랙리스트에 등록된 토큰입니다."),
     JWT_BAD_REQUEST(HttpStatus.UNAUTHORIZED, 2004, "잘못된 JWT 서명입니다."),
     JWT_TOKEN_EXPIRED(HttpStatus.UNAUTHORIZED, 2005, "만료된 JWT 토큰입니다."),

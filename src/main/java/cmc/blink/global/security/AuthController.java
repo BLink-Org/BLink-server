@@ -31,4 +31,11 @@ public class AuthController {
         authService.logout(httpServletRequest, logoutRequestDto, user);
         return ApiResponseDto.of("로그아웃이 완료되었습니다.", null);
     }
+
+    @PostMapping("/reissue")
+    @Operation(summary = "토큰 재발급 API", description = "토큰 재발급 API입니다.")
+    public ApiResponseDto<AuthResponse.ReissueResponseDto>reissue(AuthRequest.ReissueRequestDto reissueRequestDto){
+
+        return ApiResponseDto.of("토큰 재발급이 완료되었습니다.", authService.reissue(reissueRequestDto));
+    }
 }

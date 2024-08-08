@@ -11,4 +11,11 @@ public class AuthResponse {
         String accessToken;
         String refreshToken;
     }
+
+    @Getter
+    @Builder
+    public static class ReissueResponseDto{
+        String accessToken;
+        String refreshToken;
+    }
 }

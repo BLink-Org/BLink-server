@@ -22,8 +22,6 @@ public class RefreshToken {
 
     private String authorities;
 
-    private String uuid;
-
     @TimeToLive
     private Long expiration;
 
