@@ -77,11 +77,7 @@ public class AuthService {
 
         Token token = tokenProvider.generateToken(authentication);
 
-        return AuthResponse.LoginResponseDto.builder()
-                .accessToken(token.getAccessToken())
-                .refreshToken(token.getRefreshToken())
-                .build();
-
+        return AuthMapper.toLoginResponseDto(token);
     }
 
     @Transactional
@@ -98,5 +94,15 @@ public class AuthService {
                 .findById(refreshToken).orElseThrow(()-> new JwtAuthenticationException(ErrorCode.REFRESH_TOKEN_NOT_FOUND));
 
         refreshTokenRepository.delete(optionalRefreshToken);
+    }
+
+    @Transactional
+    public AuthResponse.ReissueResponseDto reissue(AuthRequest.ReissueRequestDto reissueRequestDto) {
+        if (reissueRequestDto.getRefreshToken().isEmpty())
+            throw new JwtAuthenticationException(ErrorCode.REFRESH_TOKEN_NOT_FOUND);
+
+        Token reissuedToken = tokenProvider.refreshToken(reissueRequestDto.getRefreshToken());
+
+        return AuthMapper.toReissuedTokenResponseDto(reissuedToken);
     }
 }

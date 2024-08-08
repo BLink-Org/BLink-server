@@ -27,7 +27,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
     private static final String[] excludePath = {
             "/swagger", "/swagger-ui.html", "/swagger-ui/**", "/api-docs", "/api-docs/**", "/v3/api-docs/**", "/v3/api-docs/swagger-config",
-            "/api/auth/login/google", "/v3/api-docs",
+            "/api/auth/login/google", "/api/auth/reissue", "/v3/api-docs",
             "/health", "/favicon.ico"
     };
 
