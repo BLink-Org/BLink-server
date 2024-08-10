@@ -17,9 +17,13 @@ public class UserMapper {
                 .build();
     }
 
-    public static UserResponse.UserInfo toUserInfo(User user) {
+    public static UserResponse.UserInfo toUserInfo(User user, boolean deleteRequest, int linkCount, int pinCount, int folderCount) {
         return UserResponse.UserInfo.builder()
                 .email(user.getEmail())
+                .deleteRequest(deleteRequest)
+                .linkCount(linkCount)
+                .pinCount(pinCount)
+                .folderCount(folderCount)
                 .build();
     }
 }

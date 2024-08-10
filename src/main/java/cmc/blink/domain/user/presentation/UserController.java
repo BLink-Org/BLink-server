@@ -21,9 +21,9 @@ public class UserController {
     private final UserService userService;
 
     @GetMapping
-    @Operation(summary = "마이페이지 유저 정보 조회 API", description = "마이페이지에서 유저 이메일 조회하는 API입니다.")
-    public ApiResponseDto<UserResponse.UserInfo> findUserEmail(@AuthUser User user) {
-        return ApiResponseDto.of(userService.findUserEmail(user));
+    @Operation(summary = "마이페이지 유저 정보 조회 API", description = "마이페이지에서 유저 정보를 조회하는 API입니다.")
+    public ApiResponseDto<UserResponse.UserInfo> findUserInfo(@AuthUser User user) {
+        return ApiResponseDto.of(userService.findUserInfo(user));
     }
 
 

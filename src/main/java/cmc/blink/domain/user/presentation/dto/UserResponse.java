@@ -9,5 +9,9 @@ public class UserResponse {
     @Builder
     public static class UserInfo {
         String email;
+        boolean deleteRequest;
+        int linkCount;
+        int pinCount;
+        int folderCount;
     }
 }
