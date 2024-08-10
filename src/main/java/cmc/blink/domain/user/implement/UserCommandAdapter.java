@@ -15,6 +15,11 @@ public class UserCommandAdapter {
         return userRepository.save(user);
     }
 
+    public User updateDeleteRequestDate(User user) {
+        user.updateDeleteRequestDate();
+
+        return userRepository.save(user);
+    }
     
 
 }
