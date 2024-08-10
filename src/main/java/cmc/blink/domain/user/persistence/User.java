@@ -54,4 +54,12 @@ public class User extends BaseTimeEntity {
         this.lastLoginTime = LocalDateTime.now();
     }
 
+    public void updateDeleteRequestDate () {
+        if (this.deleteRequestDate==null)
+            this.deleteRequestDate = LocalDate.now();
+        else {
+            this.deleteRequestDate = null;
+        }
+    }
+
 }

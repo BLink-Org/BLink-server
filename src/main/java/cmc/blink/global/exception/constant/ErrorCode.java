@@ -47,7 +47,8 @@ public enum ErrorCode {
     // 유저 관련 에러
     USER_NOT_FOUND_EXCEPTION(HttpStatus.NOT_FOUND, 2200, "사용자를 찾을 수 없습니다."),
     USER_STATUS_NOT_ACTIVE(HttpStatus.BAD_REQUEST, 2201, "비활성화 상태의 사용자는 이용할 수 없습니다."),
-
+    USER_ACCOUNT_DELETION_DENIED(HttpStatus.BAD_REQUEST, 2202, "이미 삭제 신청을 한 사용자입니다."),
+    USER_ACCOUNT_DELETION_CANCEL_DENIED(HttpStatus.BAD_REQUEST, 2203, "삭제를 신청한 사용자만 삭제 신청을 취소할 수 있습니다."),
 
     // 폴더 관련 에러
     DUPLICATE_FOLDER_TITLE(HttpStatus.BAD_REQUEST, 2400, "이미 존재하는 폴더 제목입니다."),
