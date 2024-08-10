@@ -18,14 +18,17 @@ public interface LinkRepository extends JpaRepository<Link, Long> {
     @Query("SELECT COUNT(l) FROM Link l WHERE l.user = :user AND l.isTrash = false AND l.id NOT IN (SELECT lf.link.id FROM LinkFolder lf)")
     int countByUserAndNoFolderAndIsTrashFalse(@Param("user") User user);
 
+    @Query("SELECT l FROM Link l WHERE l.user = :user AND l.isTrash = false AND l.id NOT IN (SELECT lf.link.id FROM LinkFolder lf)")
+    Page<Link> findByUserAndNoFolderAndIsTrashFalse(@Param("user") User user, Pageable pageable);
+
     Page<Link> findByIdInAndUserAndIsTrashFalse(List<Long> ids, User user, Pageable pageable);
-
     Page<Link> findByUserAndIsTrashFalse(User user, Pageable pageable);
+
     int countByUserAndIsTrashFalse(User user);
-
     Page<Link> findByUserAndIsPinnedTrueAndIsTrashFalse(User user, Pageable pageable);
-    int countByUserAndIsPinnedTrueAndIsTrashFalse(User user);
 
+    int countByUserAndIsPinnedTrueAndIsTrashFalse(User user);
     Page<Link> findByUserAndIsTrashTrue(User user, Pageable pageable);
+
     int countByUserAndIsTrashTrue(User user);
 }

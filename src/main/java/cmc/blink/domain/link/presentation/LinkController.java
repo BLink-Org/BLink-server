@@ -51,7 +51,9 @@ public class LinkController {
                                                                   @AuthUser User user) {
         LinkResponse.LinkListDto linkListDto;
 
-        if (folderId != null)
+        if(folderId == 0)
+            linkListDto = linkService.findNoFolderLinkPaging(user, sortBy, direction, page, size);
+        else if (folderId != null)
             linkListDto = linkService.findLinkFolderPaging(user, folderId, sortBy, direction, page, size);
         else
             linkListDto = linkService.findLinkPaging(user, sortBy, direction, page, size);

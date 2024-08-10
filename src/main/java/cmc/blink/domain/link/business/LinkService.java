@@ -244,6 +244,20 @@ public class LinkService {
         return LinkMapper.toLinkListDto(linkDtos, linkCount);
     }
 
+    public LinkResponse.LinkListDto findNoFolderLinkPaging(User user, String sortBy, String direction, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.Direction.fromString(direction), sortBy);
+
+        Page<Link> linksPage = linkQueryAdapter.findByUserAndNoFolderAndIsTrashFalse(user, pageable);
+
+        List<Link> links = linksPage.getContent();
+        int linkCount = linkQueryAdapter.countByUserAndNoFolderAndIsTrashFalse(user);
+
+        List<LinkResponse.LinkDto> linkDtos = links.stream()
+                .map(link -> LinkMapper.toLinkDto(link, "")).toList();
+
+        return LinkMapper.toLinkListDto(linkDtos, linkCount);
+    }
+
     @Transactional
     public LinkResponse.LinkListDto findPinnedLinks(User user, String sortBy, String direction, int page, int size) {
 
