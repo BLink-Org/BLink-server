@@ -6,6 +6,8 @@ import cmc.blink.global.security.dto.GoogleUserInfo;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDate;
+
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class UserMapper {
 
@@ -17,10 +19,11 @@ public class UserMapper {
                 .build();
     }
 
-    public static UserResponse.UserInfo toUserInfo(User user, boolean deleteRequest, int linkCount, int pinCount, int folderCount) {
+    public static UserResponse.UserInfo toUserInfo(User user, boolean deleteRequest, LocalDate deleteRequestDate, int linkCount, int pinCount, int folderCount) {
         return UserResponse.UserInfo.builder()
                 .email(user.getEmail())
                 .deleteRequest(deleteRequest)
+                .deleteRequestDate(deleteRequestDate)
                 .linkCount(linkCount)
                 .pinCount(pinCount)
                 .folderCount(folderCount)

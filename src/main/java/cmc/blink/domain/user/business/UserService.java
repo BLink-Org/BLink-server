@@ -10,6 +10,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
+
 @Service
 @RequiredArgsConstructor
 public class UserService {
@@ -23,13 +25,15 @@ public class UserService {
 
         boolean deleteRequest = user.getDeleteRequestDate() != null;
 
+        LocalDate deleteRequestDate = user.getDeleteRequestDate();
+
         int linkCount = linkQueryAdapter.countByUserAndIsTrashFalse(user);
 
         int pinCount = linkQueryAdapter.countPinnedLinksByUserAndIsTrashFalse(user);
 
         int folderCount = folderQueryAdapter.countFolderByUser(user);
 
-        return UserMapper.toUserInfo(user, deleteRequest, linkCount, pinCount, folderCount);
+        return UserMapper.toUserInfo(user, deleteRequest, deleteRequestDate, linkCount, pinCount, folderCount);
     }
 
 }
