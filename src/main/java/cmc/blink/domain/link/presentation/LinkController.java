@@ -35,7 +35,10 @@ public class LinkController {
                     폴더의 아이디
                     
                     홈 - 전체 링크 조회 : folderId 없이 /
+                    
                     각 폴더에 저장된 링크 조회 : 해당 folderId
+                    
+                    폴더 없는 링크 조회: folderId = 0 으로
 
                     담아서 요청 주시면 됩니다 ❗❗"""),
             @Parameter(name = "sortBy", description = "<정렬 기준>\n저장순: createdAt / 제목순: title"),
@@ -51,10 +54,12 @@ public class LinkController {
                                                                   @AuthUser User user) {
         LinkResponse.LinkListDto linkListDto;
 
-        if (folderId != null)
+        if(folderId == null)
+            linkListDto = linkService.findLinkPaging(user, sortBy, direction, page, size);
+        else if (folderId != 0)
             linkListDto = linkService.findLinkFolderPaging(user, folderId, sortBy, direction, page, size);
         else
-            linkListDto = linkService.findLinkPaging(user, sortBy, direction, page, size);
+            linkListDto = linkService.findNoFolderLinkPaging(user, sortBy, direction, page, size);
 
         return ApiResponseDto.of(linkListDto);
     }

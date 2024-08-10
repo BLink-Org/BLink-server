@@ -44,6 +44,10 @@ public class LinkQueryAdapter {
         return linkRepository.findByUserAndIsTrashFalse(user, pageable);
     }
 
+    public Page<Link> findByUserAndNoFolderAndIsTrashFalse(User user, Pageable pageable) {
+        return linkRepository.findByUserAndNoFolderAndIsTrashFalse(user, pageable);
+    }
+
     public int countByUserAndIsTrashFalse(User user) {
         return linkRepository.countByUserAndIsTrashFalse(user);
     }
