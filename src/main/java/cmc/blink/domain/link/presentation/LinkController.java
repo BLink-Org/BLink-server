@@ -17,6 +17,9 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
@@ -41,25 +44,29 @@ public class LinkController {
                     폴더 없는 링크 조회: folderId = 0 으로
 
                     담아서 요청 주시면 됩니다 ❗❗"""),
-            @Parameter(name = "sortBy", description = "<정렬 기준>\n저장순: createdAt / 제목순: title"),
-            @Parameter(name = "direction", description = "<정렬 방향>\n최근저장순, (ㅎ-A): desc / 과거저장순, (A-ㅎ): asc"),
+            @Parameter(name = "sortBy", description = "<정렬 기준>\n최근 저장순: createdAt_desc / 과거 저장순: createdAt_asc / 제목순(A-ㅎ): title_asc / 제목순(ㅎ-A): title_desc"),
             @Parameter(name = "page", description = "페이지 번호, ❗❗ 첫 페이지는 0번 입니다 ❗❗"),
             @Parameter(name = "size", description = "페이징 사이즈")
     })
     public ApiResponseDto<LinkResponse.LinkListDto> findAllLinks (@RequestParam(required = false, name = "folderId")Long folderId,
-                                                                  @RequestParam(defaultValue = "createdAt", name = "sortBy") String sortBy,
-                                                                  @RequestParam(defaultValue = "desc", name = "direction") String direction,
+                                                                  @RequestParam(defaultValue = "createdAt_desc", name = "sortBy") String sortBy,
                                                                   @RequestParam(defaultValue = "0", name = "page") int page,
                                                                   @RequestParam(defaultValue = "10", name = "size") int size,
                                                                   @AuthUser User user) {
         LinkResponse.LinkListDto linkListDto;
 
+        String[] sortParams = sortBy.split("_");
+        String field = sortParams[0];
+        Sort.Direction direction = Sort.Direction.fromString(sortParams[1]);
+
+        Pageable pageable = PageRequest.of(page, size, direction, field);
+
         if(folderId == null)
-            linkListDto = linkService.findLinkPaging(user, sortBy, direction, page, size);
+            linkListDto = linkService.findLinkPaging(user, pageable);
         else if (folderId != 0)
-            linkListDto = linkService.findLinkFolderPaging(user, folderId, sortBy, direction, page, size);
+            linkListDto = linkService.findLinkFolderPaging(user, folderId, pageable);
         else
-            linkListDto = linkService.findNoFolderLinkPaging(user, sortBy, direction, page, size);
+            linkListDto = linkService.findNoFolderLinkPaging(user, pageable);
 
         return ApiResponseDto.of(linkListDto);
     }
@@ -67,33 +74,42 @@ public class LinkController {
     @GetMapping("/pinned")
     @Operation(summary = "핀 고정 링크 목록 조회 API", description = "핀 고정 링크 목록 조회 API입니다.")
     @Parameters({
-            @Parameter(name = "sortBy", description = "<정렬 기준>\n핀 추가순: pinnedAt"),
-            @Parameter(name = "direction", description = "<정렬 방향>\n최근 핀 추가순: desc / 과거 핀 추가순: asc"),
+            @Parameter(name = "sortBy", description = "<정렬 기준>\n최근 핀 추가순: pinnedAt_desc / 과거 핀 추가순: pinnedAt_asc"),
             @Parameter(name = "page", description = "페이지 번호, ❗❗ 첫 페이지는 0번 입니다 ❗❗"),
             @Parameter(name = "size", description = "페이징 사이즈")
     })
-    public ApiResponseDto<LinkResponse.LinkListDto> findPinnedLinks(@RequestParam(defaultValue = "pinnedAt", name = "sortBy") String sortBy,
-                                                                    @RequestParam(defaultValue = "desc", name = "direction") String direction,
+    public ApiResponseDto<LinkResponse.LinkListDto> findPinnedLinks(@RequestParam(defaultValue = "pinnedAt_desc", name = "sortBy") String sortBy,
                                                                     @RequestParam(defaultValue = "0", name = "page") int page,
                                                                     @RequestParam(defaultValue = "10", name = "size") int size,
                                                                     @AuthUser User user) {
-        return ApiResponseDto.of(linkService.findPinnedLinks(user, sortBy, direction, page, size));
+        String[] sortParams = sortBy.split("_");
+        String field = sortParams[0];
+        Sort.Direction direction = Sort.Direction.fromString(sortParams[1]);
+
+        Pageable pageable = PageRequest.of(page, size, direction, field);
+
+        return ApiResponseDto.of(linkService.findPinnedLinks(user, pageable));
     }
 
     @GetMapping("/trash")
     @Operation(summary = "휴지통 링크 목록 조회 API", description = "휴지통 링크 목록 조회 API입니다.")
     @Parameters({
-            @Parameter(name = "sortBy", description = "<정렬 기준>\n삭제 순: trashMovedDate"),
-            @Parameter(name = "direction", description = "<정렬 방향>\n최근 삭제순: desc / 과거 삭제순: asc"),
+            @Parameter(name = "sortBy", description = "<정렬 기준>\n최근 삭제 순: trashMovedDate_desc / 과거 삭제 순: trashMovedDate_asc"),
             @Parameter(name = "page", description = "페이지 번호, ❗❗ 첫 페이지는 0번 입니다 ❗❗"),
             @Parameter(name = "size", description = "페이징 사이즈")
     })
-    public ApiResponseDto<LinkResponse.LinkListDto> findTrashLinks(@RequestParam(defaultValue = "trashMovedDate", name = "sortBy") String sortBy,
-                                                                   @RequestParam(defaultValue = "desc", name = "direction") String direction,
+    public ApiResponseDto<LinkResponse.LinkListDto> findTrashLinks(@RequestParam(defaultValue = "trashMovedDate_desc", name = "sortBy") String sortBy,
                                                                    @RequestParam(defaultValue = "0", name = "page") int page,
                                                                    @RequestParam(defaultValue = "10", name = "size") int size,
                                                                     @AuthUser User user) {
-        return ApiResponseDto.of(linkService.findTrashLinks(user, sortBy, direction, page, size));
+
+        String[] sortParams = sortBy.split("_");
+        String field = sortParams[0];
+        Sort.Direction direction = Sort.Direction.fromString(sortParams[1]);
+
+        Pageable pageable = PageRequest.of(page, size, direction, field);
+
+        return ApiResponseDto.of(linkService.findTrashLinks(user, pageable));
     }
 
     @PostMapping

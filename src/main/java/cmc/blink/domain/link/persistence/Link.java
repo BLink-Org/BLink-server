@@ -53,7 +53,7 @@ public class Link extends BaseTimeEntity {
     private boolean isTrash;
 
     @Column
-    private LocalDate trashMovedDate;
+    private LocalDateTime trashMovedDate;
 
     @ColumnDefault("false")
     private boolean isPinned;
@@ -72,7 +72,7 @@ public class Link extends BaseTimeEntity {
     public void moveToTrash() {
         if (!this.isTrash){
             this.isTrash = true;
-            this.trashMovedDate = LocalDate.now();
+            this.trashMovedDate = LocalDateTime.now();
         }
     }
 

@@ -203,14 +203,13 @@ public class LinkService {
     }
 
     @Transactional
-    public LinkResponse.LinkListDto findLinkFolderPaging(User user, Long folderId, String sortBy, String direction, int page, int size) {
+    public LinkResponse.LinkListDto findLinkFolderPaging(User user, Long folderId, Pageable pageable) {
         Folder folder = folderQueryAdapter.findById(folderId);
 
         if (folder.getUser() != user) {
             throw new FolderException(ErrorCode.FOLDER_ACCESS_DENIED);
         }
 
-        Pageable pageable = PageRequest.of(page, size, Sort.Direction.fromString(direction), sortBy);
         List<LinkFolder> linkFolders = linkFolderQueryAdapter.findAllByFolder(folder);
         List<Long> linkIds = linkFolders.stream().map(linkFolder -> linkFolder.getLink().getId()).collect(Collectors.toList());
 
@@ -228,8 +227,7 @@ public class LinkService {
     }
 
     @Transactional
-    public LinkResponse.LinkListDto findLinkPaging(User user, String sortBy, String direction, int page, int size) {
-        Pageable pageable = PageRequest.of(page, size, Sort.Direction.fromString(direction), sortBy);
+    public LinkResponse.LinkListDto findLinkPaging(User user, Pageable pageable) {
 
         Page<Link> linksPage = linkQueryAdapter.findByUserAndIsTrashFalse(user, pageable);
 
@@ -244,8 +242,7 @@ public class LinkService {
         return LinkMapper.toLinkListDto(linkDtos, linkCount);
     }
 
-    public LinkResponse.LinkListDto findNoFolderLinkPaging(User user, String sortBy, String direction, int page, int size) {
-        Pageable pageable = PageRequest.of(page, size, Sort.Direction.fromString(direction), sortBy);
+    public LinkResponse.LinkListDto findNoFolderLinkPaging(User user, Pageable pageable) {
 
         Page<Link> linksPage = linkQueryAdapter.findByUserAndNoFolderAndIsTrashFalse(user, pageable);
 
@@ -259,9 +256,8 @@ public class LinkService {
     }
 
     @Transactional
-    public LinkResponse.LinkListDto findPinnedLinks(User user, String sortBy, String direction, int page, int size) {
+    public LinkResponse.LinkListDto findPinnedLinks(User user, Pageable pageable) {
 
-        Pageable pageable = PageRequest.of(page, size, Sort.Direction.fromString(direction), sortBy);
         Page<Link> linksPage = linkQueryAdapter.findPinnedLinksByUserAndIsTrashFalse(user, pageable);
 
         List<Link> links = linksPage.getContent();
@@ -277,8 +273,7 @@ public class LinkService {
     }
 
     @Transactional
-    public LinkResponse.LinkListDto findTrashLinks(User user, String sortBy, String direction, int page, int size) {
-        Pageable pageable = PageRequest.of(page, size, Sort.Direction.fromString(direction), sortBy);
+    public LinkResponse.LinkListDto findTrashLinks(User user, Pageable pageable) {
         Page<Link> linksPage = linkQueryAdapter.findTrashLinksByUser(user, pageable);
 
         List<Link> links = linksPage.getContent();
