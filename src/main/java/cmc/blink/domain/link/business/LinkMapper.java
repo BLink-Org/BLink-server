@@ -60,4 +60,13 @@ public class LinkMapper {
                 .imageUrl(imageUrl)
                 .build();
     }
+
+    public static LinkResponse.FolderIdListDto toFolderIdListDto(List<LinkFolder> linkFolders) {
+
+        return LinkResponse.FolderIdListDto.builder()
+                .folderIdList(linkFolders.stream()
+                        .map(linkFolder -> linkFolder.getFolder().getId())
+                        .collect(Collectors.toList()))
+                .build();
+    }
 }
