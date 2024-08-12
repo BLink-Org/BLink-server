@@ -2,6 +2,7 @@ package cmc.blink.domain.user.business;
 
 import cmc.blink.domain.user.persistence.User;
 import cmc.blink.domain.user.presentation.dto.UserResponse;
+import cmc.blink.global.security.dto.AuthRequest;
 import cmc.blink.global.security.dto.GoogleUserInfo;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
@@ -15,6 +16,13 @@ public class UserMapper {
         return User.builder()
                 .email(userInfo.getEmail())
                 .name(userInfo.getName())
+                .provider(provider)
+                .build();
+    }
+
+    public static User toUser(AuthRequest.AppleLoginRequestDto requestDto, String provider) {
+        return User.builder()
+                .email(requestDto.getEmail())
                 .provider(provider)
                 .build();
     }

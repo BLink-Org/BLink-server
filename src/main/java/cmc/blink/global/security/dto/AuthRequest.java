@@ -10,6 +10,12 @@ public class AuthRequest {
     }
 
     @Getter
+    public static class AppleLoginRequestDto {
+        String identityToken;
+        String email;
+    }
+
+    @Getter
     public static class LogoutRequestDto {
         String refreshToken;
     }

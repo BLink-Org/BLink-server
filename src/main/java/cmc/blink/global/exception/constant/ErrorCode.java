@@ -43,6 +43,7 @@ public enum ErrorCode {
     JWT_UNSUPPORTED_TOKEN(HttpStatus.UNAUTHORIZED, 2006,"지원하지 않는 JWT 토큰입니다."),
     JWT_TOKEN_NOT_FOUND(HttpStatus.NOT_FOUND, 2007, "토큰을 찾을 수 없습니다."),
     REFRESH_TOKEN_NOT_FOUND(HttpStatus.NOT_FOUND, 2008, "리프레시 토큰을 찾을 수 없습니다."),
+    APPLE_PUBLIC_KEY_NOT_FOUND(HttpStatus.NOT_FOUND, 2009, "일치하는 애플 퍼블릭 키를 찾을 수 없습니다."),
 
     // 유저 관련 에러
     USER_NOT_FOUND_EXCEPTION(HttpStatus.NOT_FOUND, 2200, "사용자를 찾을 수 없습니다."),
