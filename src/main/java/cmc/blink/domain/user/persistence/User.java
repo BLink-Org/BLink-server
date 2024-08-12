@@ -26,7 +26,6 @@ public class User extends BaseTimeEntity {
     @Column(columnDefinition = "VARCHAR(10) DEFAULT 'ACTIVE'")
     private Status status;
 
-    @Column(nullable = false)
     private String name;
 
     @Column(nullable = false)
@@ -46,6 +45,11 @@ public class User extends BaseTimeEntity {
 
     public void update(String name, String email, String provider) {
         this.name = name;
+        this.email = email;
+        this.provider = provider;
+    }
+
+    public void update(String email, String provider) {
         this.email = email;
         this.provider = provider;
     }
