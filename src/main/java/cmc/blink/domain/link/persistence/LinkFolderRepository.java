@@ -20,6 +20,6 @@ public interface LinkFolderRepository extends JpaRepository<LinkFolder, Long> {
 
     int countByFolderAndLinkIsTrashFalse(Folder folder);
 
-    @Query("SELECT lf.link.id, lf.folder.title FROM LinkFolder lf WHERE lf.link.id IN :linkIds AND lf.link.isTrash = false ORDER BY lf.folder.id")
-    List<Object[]> findFirstFolderNamesForLinks(@Param("linkIds") List<Long> linkIds);
+    @Query("SELECT lf.link.id, f.title FROM LinkFolder lf JOIN lf.folder f WHERE lf.link.id IN :linkIds ORDER BY lf.folder.sortOrder")
+    List<Object[]> findFolderTitlesForLinks(@Param("linkIds") List<Long> linkIds);
 }
