@@ -116,6 +116,18 @@ public class LinkService {
     }
 
     @Transactional
+    public LinkResponse.FolderIdListDto findLinkFolders(User user, Long linkId) {
+        Link link = linkQueryAdapter.findById(linkId);
+
+        if (link.getUser() != user)
+            throw new LinkException(ErrorCode.LINK_ACCESS_DENIED);
+
+        List<LinkFolder> linkFolders = linkFolderQueryAdapter.findAllByLink(link);
+
+        return LinkMapper.toFolderIdListDto(linkFolders);
+    }
+
+    @Transactional
     public void updateTitle(LinkRequest.LinkTitleUpdateDto updateDto, Long linkId, User user) {
         Link link = linkQueryAdapter.findById(linkId);
 

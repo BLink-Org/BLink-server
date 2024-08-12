@@ -112,6 +112,19 @@ public class LinkController {
         return ApiResponseDto.of(linkService.findTrashLinks(user, pageable));
     }
 
+    @GetMapping("/{linkId}/folders")
+    @Operation(summary = "링크 폴더 목록 조회 API", description = "특정 링크가 저장 되어 있는 폴더 목록 조회 API입니다.")
+    @Parameters({
+            @Parameter(name = "linkId", description = "링크의 아이디")
+    })
+    @ApiResponses({
+            @ApiResponse(responseCode = "Error Code: 2603", description = "<<BAD_REQUEST>> id로 링크를 찾을 수 없음.", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
+            @ApiResponse(responseCode = "Error Code: 2604", description = "<<FORBIDDEN>> 해당 링크의 소유자가 아님.", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class)))
+    })
+    public ApiResponseDto<LinkResponse.FolderIdListDto> findLinkFolders (@AuthUser User user, @PathVariable(name = "linkId") Long linkId){
+        return ApiResponseDto.of(linkService.findLinkFolders(user, linkId));
+    }
+
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     @Operation(summary = "링크 저장 API", description = "링크 저장 API입니다.")

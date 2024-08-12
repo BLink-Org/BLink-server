@@ -1,5 +1,6 @@
 package cmc.blink.domain.link.presentation.dto;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -42,5 +43,11 @@ public class LinkResponse {
         String type;
         String contents;
         String imageUrl;
+    }
+
+    @Getter
+    @Builder
+    public static class FolderIdListDto {
+        List<Long> folderIdList;
     }
 }
