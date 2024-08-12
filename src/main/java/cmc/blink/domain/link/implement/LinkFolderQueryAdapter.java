@@ -28,14 +28,12 @@ public class LinkFolderQueryAdapter {
         return linkFolderRepository.countByFolderAndLinkIsTrashFalse(folder);
     }
 
-    public Map<Long, String> findFirstFolderNamesForLinks(List<Link> links) {
+    public Map<Long, List<String>> findFolderTitlesForLinks(List<Link> links) {
         List<Long> linkIds = links.stream().map(Link::getId).collect(Collectors.toList());
-        return linkFolderRepository.findFirstFolderNamesForLinks(linkIds).stream()
-                .collect(Collectors.toMap(
+        return linkFolderRepository.findFolderTitlesForLinks(linkIds).stream()
+                .collect(Collectors.groupingBy(
                         result -> (Long) result[0],
-                        result -> (String) result[1],
-                        (existing, replacement) -> existing,
-                        LinkedHashMap::new
+                        Collectors.mapping(result -> (String) result[1], Collectors.toList())
                 ));
     }
 
