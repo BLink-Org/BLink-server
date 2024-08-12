@@ -246,10 +246,22 @@ public class LinkService {
         List<Link> links = linksPage.getContent();
         int linkCount = linkQueryAdapter.countByUserAndIsTrashFalse(user);
 
-        Map<Long, String> folderNamesMap = linkFolderQueryAdapter.findFirstFolderNamesForLinks(links);
+        Map<Long, List<String>> folderNamesMap = linkFolderQueryAdapter.findFolderTitlesForLinks(links);
 
         List<LinkResponse.LinkDto> linkDtos = links.stream()
-                .map(link -> LinkMapper.toLinkDto(link, folderNamesMap.getOrDefault(link.getId(), null))).toList();
+                .map(link -> {
+                    List<String> folderNames = folderNamesMap.getOrDefault(link.getId(), null);
+                    String folderName = null;
+
+                    if (folderNames != null && !folderNames.isEmpty()) {
+                        folderName = folderNames.get(0);
+                        if (folderNames.size() > 1) {
+                            folderName += " 외";
+                        }
+                    }
+
+                    return LinkMapper.toLinkDto(link, folderName);
+                }).toList();
 
         return LinkMapper.toLinkListDto(linkDtos, linkCount);
     }
@@ -275,11 +287,22 @@ public class LinkService {
         List<Link> links = linksPage.getContent();
         int linkCount = linkQueryAdapter.countPinnedLinksByUserAndIsTrashFalse(user);
 
-        Map<Long, String> folderNamesMap = linkFolderQueryAdapter.findFirstFolderNamesForLinks(links);
+        Map<Long, List<String>> folderNamesMap = linkFolderQueryAdapter.findFolderTitlesForLinks(links);
 
         List<LinkResponse.LinkDto> linkDtos = links.stream()
-                .map(link -> LinkMapper.toLinkDto(link, folderNamesMap.getOrDefault(link.getId(), null)))
-                .collect(Collectors.toList());
+                .map(link -> {
+                    List<String> folderNames = folderNamesMap.getOrDefault(link.getId(), null);
+                    String folderName = null;
+
+                    if (folderNames != null && !folderNames.isEmpty()) {
+                        folderName = folderNames.get(0);
+                        if (folderNames.size() > 1) {
+                            folderName += " 외";
+                        }
+                    }
+
+                    return LinkMapper.toLinkDto(link, folderName);
+                }).toList();
 
         return LinkMapper.toLinkListDto(linkDtos, linkCount);
     }
@@ -291,11 +314,22 @@ public class LinkService {
         List<Link> links = linksPage.getContent();
         int linkCount = linkQueryAdapter.countTrashLinksByUser(user);
 
-        Map<Long, String> folderNamesMap = linkFolderQueryAdapter.findFirstFolderNamesForLinks(links);
+        Map<Long, List<String>> folderNamesMap = linkFolderQueryAdapter.findFolderTitlesForLinks(links);
 
         List<LinkResponse.LinkDto> linkDtos = links.stream()
-                .map(link -> LinkMapper.toLinkDto(link, folderNamesMap.getOrDefault(link.getId(), null)))
-                .collect(Collectors.toList());
+                .map(link -> {
+                    List<String> folderNames = folderNamesMap.getOrDefault(link.getId(), null);
+                    String folderName = null;
+
+                    if (folderNames != null && !folderNames.isEmpty()) {
+                        folderName = folderNames.get(0);
+                        if (folderNames.size() > 1) {
+                            folderName += " 외";
+                        }
+                    }
+
+                    return LinkMapper.toLinkDto(link, folderName);
+                }).toList();
 
         return LinkMapper.toLinkListDto(linkDtos, linkCount);
     }
