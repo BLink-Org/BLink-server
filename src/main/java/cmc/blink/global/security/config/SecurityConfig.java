@@ -29,7 +29,7 @@ public class SecurityConfig {
     private static final String[] WHITE_LIST = {
             "/swagger", "/swagger-ui.html", "/swagger-ui/**", "/api-docs", "/api-docs/**", "/v3/api-docs/**",
             "/v3/api-docs/swagger-config", "/v3/api-docs",
-            "/api/auth/login/google", "/api/auth/reissue",
+            "/api/auth/login/google", "/api/auth/login/apple", "/api/auth/reissue",
             "/health", "/favicon.ico"
     };
 
