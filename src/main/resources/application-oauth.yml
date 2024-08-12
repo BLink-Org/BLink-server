@@ -12,26 +12,9 @@ spring:
             scope:
               - email
               - profile
-#          apple:
-#            client-name: Apple
-#            client-id:
-#            client-secret:
-#            authorization-grant-type: authorization_code
-#            key-id:
-#            team-id:
-#            audience:
-#            private-key:
-#            redirect-uri:
-#            scope:
-#              - name
-#              - email
         provider:
           google:
             authorization-uri: https://accounts.google.com/o/oauth2/v2/auth
             token-uri: https://oauth2.googleapis.com/token
             user-info-uri: https://openidconnect.googleapis.com/v1/userinfo
             user-name-attribute: email
-#          apple:
-#            authorization-uri: https://appleid.apple.com/auth/authorize
-#            token-uri: https://appleid.apple.com/auth/token
-#            user-name-attribute: id
