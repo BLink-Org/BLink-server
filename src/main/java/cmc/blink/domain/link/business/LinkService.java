@@ -107,7 +107,7 @@ public class LinkService {
             new java.net.URL(url).toURI();
             return true;
         } catch (Exception e) {
-            return false;
+            throw new LinkException(ErrorCode.INVALID_LINK_URL);
         }
     }
 
@@ -121,136 +121,156 @@ public class LinkService {
             String imageUrl = getOpenGraphContent(openGraph, "image");
 
             return LinkMapper.toLinkInfo(title, type, contents, imageUrl);
-
+        } catch (IOException e) {
+            throw new LinkException(ErrorCode.LINK_SCRAPED_FAILED);
         } catch (Exception e) {
-            return fetchLinkInfoWithJsoup(url);}
+            return fetchLinkInfoWithJsoup(url);
+        }
     }
 
-    private LinkResponse.LinkInfo fetchYoutubeLinkInfo(String url) throws Exception {
-        OpenGraph openGraph = new OpenGraph(url, true);
-        Document doc = Jsoup.connect(url).get();
+    private LinkResponse.LinkInfo fetchYoutubeLinkInfo(String url) {
+        try {
+            OpenGraph openGraph = new OpenGraph(url, true);
+            Document doc = Jsoup.connect(url).get();
 
-        String title = getOpenGraphContent(openGraph, "title");
-        String type = getOpenGraphContent(openGraph, "site_name");
-        String channelTitle = doc.select("meta[itemprop='author']").attr("content");
-        if (channelTitle.isEmpty()) {
-            channelTitle = doc.select("link[itemprop='name']").attr("content");
+            String title = getOpenGraphContent(openGraph, "title");
+            String type = getOpenGraphContent(openGraph, "site_name");
+            String channelTitle = doc.select("meta[itemprop='author']").attr("content");
+            if (channelTitle.isEmpty()) {
+                channelTitle = doc.select("link[itemprop='name']").attr("content");
+            }
+            String contents = getOpenGraphContent(openGraph, "description");
+
+            contents = String.format("%s | %s", channelTitle, contents);
+
+            String imageUrl = getOpenGraphContent(openGraph, "image");
+
+            return LinkMapper.toLinkInfo(title, type, contents, imageUrl);
+        } catch (Exception e) {
+            throw new LinkException(ErrorCode.LINK_SCRAPED_FAILED);
         }
-        String contents = getOpenGraphContent(openGraph, "description");
-
-        contents = String.format("%s | %s",channelTitle, contents);
-
-        String imageUrl = getOpenGraphContent(openGraph, "image");
-
-        return LinkMapper.toLinkInfo(title, type, contents, imageUrl);
-    }
-
-    private LinkResponse.LinkInfo fetchInstagramLinkInfo(String url) throws Exception {
-
-        OpenGraph openGraph = new OpenGraph(url, true);
-
-        String type = getOpenGraphContent(openGraph, "site_name");
-
-        if (type.isEmpty()) {
-            type = "Instagram Profile";
-        }
-
-        String title = getOpenGraphContent(openGraph, "title");
-        int titleIndex = title.indexOf("on Instagram: ");
-        if (titleIndex != -1 && title.length() > titleIndex + "on Instagram: ".length()) {
-            title = title.substring(titleIndex + "on Instagram: ".length()).trim();
-        } else if (type.equals("Instagram Profile")) {
-            title = title.trim();
-        } else {
-            title = "";
-        }
-
-        String contents = getOpenGraphContent(openGraph, "description");
-        int contentIndex = contents.indexOf(": ");
-        if (contentIndex != -1 && contents.length() > contentIndex + 2) {
-            contents = contents.substring(contentIndex + 2).trim();
-        } else if (type.equals("Instagram Profile")) {
-            contents = contents.trim();
-        } else {
-            contents = "";
-        }
-
-        String imageUrl = getOpenGraphContent(openGraph, "image");
-
-        return LinkMapper.toLinkInfo(title, type, contents, imageUrl);
-    }
-
-    private LinkResponse.LinkInfo fetchNaverBlogLinkInfo(String url) throws Exception {
-        Document doc = Jsoup.connect(url).get();
-
-        Element iframe = doc.selectFirst("iframe#mainFrame");
-        if (iframe == null) {
-            throw new Exception("Main frame not found.");
-        }
-        String postUrl = "https://blog.naver.com" + iframe.attr("src");
-
-        Document postDoc = Jsoup.connect(postUrl).get();
-
-        String title = postDoc.title();
-
-        String contents = postDoc.select(".se-main-container").text();
-        if (contents.length() > 300) {
-            contents = contents.substring(0, 300);
-        }
-        Elements images = postDoc.select(".se-main-container img");
-        String imageUrl = "";
-        for (Element img : images) {
-            imageUrl = img.attr("src");
-            break;
-        }
-
-        return LinkMapper.toLinkInfo(title, "Naver", contents, imageUrl);
-    }
-
-    private LinkResponse.LinkInfo fetchNaverCafeLinkInfo(String url) throws Exception {
-        Document doc = Jsoup.connect(url).get();
-
-        String title = doc.select("meta[property=og:title]").attr("content");
-        if (title.isEmpty()) {
-            title = doc.title();  // Fallback to the regular title if og:title is not present
-        }
-
-        String contents = doc.select("meta[property=og:description]").attr("content");
-        if (contents.isEmpty()) {
-            contents = doc.select("meta[name=description]").attr("content"); // Another fallback
-        }
-
-        String imageUrl = doc.select("meta[property=og:image]").attr("content");
-
-        return LinkMapper.toLinkInfo(title, "Naver", contents, imageUrl);
-
     }
 
 
-    private LinkResponse.LinkInfo fetchTwitterLinkInfo(String url) throws Exception {
-        // Follow the redirect manually
-        Document doc = Jsoup.connect(url)
-                .followRedirects(true)
-                .get();
+    private LinkResponse.LinkInfo fetchInstagramLinkInfo(String url) {
+        try {
+            OpenGraph openGraph = new OpenGraph(url, true);
 
-        String title = doc.select("meta[property=og:title]").attr("content");
-        if (title.isEmpty()) {
-            title = doc.title();  // Fallback to the regular title if og:title is not present
+            String type = getOpenGraphContent(openGraph, "site_name");
+
+            if (type.isEmpty()) {
+                type = "Instagram Profile";
+            }
+
+            String title = getOpenGraphContent(openGraph, "title");
+            int titleIndex = title.indexOf("on Instagram: ");
+            if (titleIndex != -1 && title.length() > titleIndex + "on Instagram: ".length()) {
+                title = title.substring(titleIndex + "on Instagram: ".length()).trim();
+            } else if (type.equals("Instagram Profile")) {
+                title = title.trim();
+            } else {
+                title = "";
+            }
+
+            String contents = getOpenGraphContent(openGraph, "description");
+            int contentIndex = contents.indexOf(": ");
+            if (contentIndex != -1 && contents.length() > contentIndex + 2) {
+                contents = contents.substring(contentIndex + 2).trim();
+            } else if (type.equals("Instagram Profile")) {
+                contents = contents.trim();
+            } else {
+                contents = "";
+            }
+
+            String imageUrl = getOpenGraphContent(openGraph, "image");
+
+            return LinkMapper.toLinkInfo(title, type, contents, imageUrl);
+        } catch (Exception e) {
+            throw new LinkException(ErrorCode.LINK_SCRAPED_FAILED);
         }
+    }
 
-        String type = doc.select("meta[property=og:site_name]").attr("content");
-        if (type.isEmpty()) {
-            type = "Twitter";
+    private LinkResponse.LinkInfo fetchNaverBlogLinkInfo(String url) {
+        try {
+            Document doc = Jsoup.connect(url).get();
+
+            Element iframe = doc.selectFirst("iframe#mainFrame");
+            if (iframe == null) {
+                throw new LinkException(ErrorCode.LINK_SCRAPED_FAILED);
+            }
+            String postUrl = "https://blog.naver.com" + iframe.attr("src");
+
+            Document postDoc = Jsoup.connect(postUrl).get();
+
+            String title = postDoc.title();
+
+            String contents = postDoc.select(".se-main-container").text();
+            if (contents.length() > 300) {
+                contents = contents.substring(0, 300);
+            }
+            Elements images = postDoc.select(".se-main-container img");
+            String imageUrl = "";
+            for (Element img : images) {
+                imageUrl = img.attr("src");
+                break;
+            }
+
+            return LinkMapper.toLinkInfo(title, "Naver", contents, imageUrl);
+        } catch (IOException e) {
+            throw new LinkException(ErrorCode.LINK_SCRAPED_FAILED);
         }
+    }
 
-        String contents = doc.select("meta[property=og:description]").attr("content");
-        if (contents.isEmpty()) {
-            contents = doc.select("meta[name=description]").attr("content"); // Another fallback
+    private LinkResponse.LinkInfo fetchNaverCafeLinkInfo(String url) {
+        try {
+            Document doc = Jsoup.connect(url).get();
+
+            String title = doc.select("meta[property=og:title]").attr("content");
+            if (title.isEmpty()) {
+                title = doc.title();  // Fallback to the regular title if og:title is not present
+            }
+
+            String contents = doc.select("meta[property=og:description]").attr("content");
+            if (contents.isEmpty()) {
+                contents = doc.select("meta[name=description]").attr("content"); // Another fallback
+            }
+
+            String imageUrl = doc.select("meta[property=og:image]").attr("content");
+
+            return LinkMapper.toLinkInfo(title, "Naver", contents, imageUrl);
+        } catch (IOException e) {
+            throw new LinkException(ErrorCode.LINK_SCRAPED_FAILED);
         }
+    }
 
-        String imageUrl = doc.select("meta[property=og:image]").attr("content");
 
-        return LinkMapper.toLinkInfo(title, type, contents, imageUrl);
+    private LinkResponse.LinkInfo fetchTwitterLinkInfo(String url) {
+        try {
+            Document doc = Jsoup.connect(url)
+                    .followRedirects(true)
+                    .get();
+
+            String title = doc.select("meta[property=og:title]").attr("content");
+            if (title.isEmpty()) {
+                title = doc.title();  // Fallback to the regular title if og:title is not present
+            }
+
+            String type = doc.select("meta[property=og:site_name]").attr("content");
+            if (type.isEmpty()) {
+                type = "Twitter";
+            }
+
+            String contents = doc.select("meta[property=og:description]").attr("content");
+            if (contents.isEmpty()) {
+                contents = doc.select("meta[name=description]").attr("content"); // Another fallback
+            }
+
+            String imageUrl = doc.select("meta[property=og:image]").attr("content");
+
+            return LinkMapper.toLinkInfo(title, type, contents, imageUrl);
+        } catch (IOException e) {
+            throw new LinkException(ErrorCode.LINK_SCRAPED_FAILED);
+        }
     }
 
     private String getOpenGraphContent(OpenGraph openGraph, String property) {
