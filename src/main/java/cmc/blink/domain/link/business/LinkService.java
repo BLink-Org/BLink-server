@@ -59,12 +59,12 @@ public class LinkService {
         if (!isValidUrl(createDto.getUrl()))
             throw new LinkException(ErrorCode.INVALID_LINK_URL);
 
-        // Extract domain and fetch link info based on domain
         String domain = extractDomain(createDto.getUrl());
+
         LinkResponse.LinkInfo linkInfo = switch (domain) {
             case "youtu.be", "youtube.com" -> fetchYoutubeLinkInfo(createDto.getUrl());
             case "instagram.com" -> fetchInstagramLinkInfo(createDto.getUrl());
-            case "blog.naver.com" -> fetchNaverLinkInfo(createDto.getUrl());
+            case "blog.naver.com" -> fetchNaverBlogLinkInfo(createDto.getUrl());
             case "cafe.naver.com" -> fetchNaverCafeLinkInfo(createDto.getUrl());
             case "x.com" -> fetchTwitterLinkInfo(createDto.getUrl());
             default -> fetchLinkInfo(createDto.getUrl());
@@ -170,7 +170,7 @@ public class LinkService {
         return LinkMapper.toLinkInfo(title, type, contents, imageUrl);
     }
 
-    private LinkResponse.LinkInfo fetchNaverLinkInfo(String url) throws Exception {
+    private LinkResponse.LinkInfo fetchNaverBlogLinkInfo(String url) throws Exception {
         Document doc = Jsoup.connect(url).get();
 
         Element iframe = doc.selectFirst("iframe#mainFrame");
