@@ -7,6 +7,7 @@ import cmc.blink.domain.user.persistence.User;
 import cmc.blink.global.annotation.AuthUser;
 import cmc.blink.global.common.ApiResponseDto;
 import cmc.blink.global.exception.dto.ApiErrorResponse;
+import cmc.blink.global.validator.ByteSize;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.Parameters;
@@ -23,6 +24,8 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @Tag(name="링크", description = "링크 API 입니다.")
 @RestController
 @RequiredArgsConstructor
@@ -30,6 +33,14 @@ import org.springframework.web.bind.annotation.*;
 public class LinkController {
 
     private final LinkService linkService;
+
+    @GetMapping("/search")
+    @Operation(summary = "링크 검색 API", description = "링크 검색 API입니다.")
+    public ApiResponseDto<LinkResponse.LinkListDto> searchLinks(@AuthUser User user,
+                                                                  @ByteSize(max = 300, message = "검색어는 최대 300바이트까지만 허용됩니다.") @RequestParam(name="query") String query) {
+        return ApiResponseDto.of(linkService.searchLinks(query, user));
+    }
+
 
     @GetMapping
     @Operation(summary = "링크 목록 조회 API", description = "링크 목록 조회 API입니다.")

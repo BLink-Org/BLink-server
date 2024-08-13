@@ -17,15 +17,12 @@ import cmc.blink.global.exception.LinkException;
 import cmc.blink.global.exception.constant.ErrorCode;
 import cmc.blink.global.util.opengraph.OpenGraph;
 import lombok.RequiredArgsConstructor;
-import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.util.HtmlUtils;
@@ -48,6 +45,19 @@ public class LinkService {
     private final FolderCommandAdapter folderCommandAdapter;
     private final LinkFolderQueryAdapter linkFolderQueryAdapter;
     private final LinkFolderCommandAdapter linkFolderCommandAdapter;
+
+    @Transactional(readOnly = true)
+    public LinkResponse.LinkListDto searchLinks(String query, User user) {
+
+        List<Link> links = linkQueryAdapter.searchLinksByUserAndQuery(user, query);
+
+        int linkCount = links.size();
+
+        List<LinkResponse.LinkDto> linkDtos = findRepresentFolderName(links);
+
+        return LinkMapper.toLinkListDto(linkDtos, linkCount);
+
+    }
 
     @Transactional
     public LinkResponse.LinkCreateDto saveLink(LinkRequest.LinkCreateDto createDto, User user) throws Exception {
