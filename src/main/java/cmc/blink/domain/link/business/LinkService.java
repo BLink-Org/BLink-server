@@ -17,8 +17,11 @@ import cmc.blink.global.exception.LinkException;
 import cmc.blink.global.exception.constant.ErrorCode;
 import cmc.blink.global.util.opengraph.OpenGraph;
 import lombok.RequiredArgsConstructor;
+import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -28,6 +31,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.util.HtmlUtils;
 
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -45,7 +50,7 @@ public class LinkService {
     private final LinkFolderCommandAdapter linkFolderCommandAdapter;
 
     @Transactional
-    public LinkResponse.LinkCreateDto saveLink(LinkRequest.LinkCreateDto createDto, User user) {
+    public LinkResponse.LinkCreateDto saveLink(LinkRequest.LinkCreateDto createDto, User user) throws Exception {
         // 입력받은 url이 사용자가 이미 저장했던 링크인지 검증
         if (linkQueryAdapter.isLinkUrlDuplicate(createDto.getUrl(), user))
             throw new LinkException(ErrorCode.DUPLICATE_LINK_URL);
@@ -54,13 +59,16 @@ public class LinkService {
         if (!isValidUrl(createDto.getUrl()))
             throw new LinkException(ErrorCode.INVALID_LINK_URL);
 
-        // 입력받은 url 웹 스크래핑 하여 링크 테이블에 저장할 필드(제목, 타입, 본문, 이미지 url) 가져오기
-        LinkResponse.LinkInfo linkInfo = null;
-        try {
-            linkInfo = fetchLinkInfo(createDto.getUrl());
-        } catch (IOException e) {
-            throw new LinkException(ErrorCode.LINK_SCRAPED_FAILED);
-        }
+        String domain = extractDomain(createDto.getUrl());
+
+        LinkResponse.LinkInfo linkInfo = switch (domain) {
+            case "youtu.be", "youtube.com" -> fetchYoutubeLinkInfo(createDto.getUrl());
+            case "instagram.com" -> fetchInstagramLinkInfo(createDto.getUrl());
+            case "blog.naver.com" -> fetchNaverBlogLinkInfo(createDto.getUrl());
+            case "cafe.naver.com" -> fetchNaverCafeLinkInfo(createDto.getUrl());
+            case "x.com" -> fetchTwitterLinkInfo(createDto.getUrl());
+            default -> fetchLinkInfo(createDto.getUrl());
+        };
 
         // 링크 레코드 생성
         Link link = linkCommandAdapter.create(LinkMapper.toLink(createDto.getUrl(), user, linkInfo));
@@ -72,6 +80,16 @@ public class LinkService {
                 .forEach(folder -> linkFolderCommandAdapter.create(LinkFolderMapper.toLinkFolder(link, folder)));
 
         return LinkMapper.toLinkCreateDto(link);
+    }
+
+    private String extractDomain(String url) {
+        try {
+            URI uri = new URI(url);
+            String domain = uri.getHost();
+            return domain != null ? domain.startsWith("www.") ? domain.substring(4) : domain : "";
+        } catch (URISyntaxException e) {
+            throw new IllegalArgumentException("Invalid URL", e);
+        }
     }
 
     private boolean isValidUrl(String url) {
@@ -96,6 +114,133 @@ public class LinkService {
 
         } catch (Exception e) {
             return fetchLinkInfoWithJsoup(url);}
+    }
+
+    private LinkResponse.LinkInfo fetchYoutubeLinkInfo(String url) throws Exception {
+        OpenGraph openGraph = new OpenGraph(url, true);
+        Document doc = Jsoup.connect(url).get();
+
+        String title = getOpenGraphContent(openGraph, "title");
+        String type = getOpenGraphContent(openGraph, "site_name");
+        String channelTitle = doc.select("meta[itemprop='author']").attr("content");
+        if (channelTitle.isEmpty()) {
+            channelTitle = doc.select("link[itemprop='name']").attr("content");
+        }
+        String contents = getOpenGraphContent(openGraph, "description");
+
+        contents = String.format("%s | %s",channelTitle, contents);
+
+        String imageUrl = getOpenGraphContent(openGraph, "image");
+
+        return LinkMapper.toLinkInfo(title, type, contents, imageUrl);
+    }
+
+    private LinkResponse.LinkInfo fetchInstagramLinkInfo(String url) throws Exception {
+
+        OpenGraph openGraph = new OpenGraph(url, true);
+
+        String type = getOpenGraphContent(openGraph, "site_name");
+
+        if (type.isEmpty()) {
+            type = "Instagram Profile";
+        }
+
+        String title = getOpenGraphContent(openGraph, "title");
+        int titleIndex = title.indexOf("on Instagram: ");
+        if (titleIndex != -1 && title.length() > titleIndex + "on Instagram: ".length()) {
+            title = title.substring(titleIndex + "on Instagram: ".length()).trim();
+        } else if (type.equals("Instagram Profile")) {
+            title = title.trim();
+        } else {
+            title = "";
+        }
+
+        String contents = getOpenGraphContent(openGraph, "description");
+        int contentIndex = contents.indexOf(": ");
+        if (contentIndex != -1 && contents.length() > contentIndex + 2) {
+            contents = contents.substring(contentIndex + 2).trim();
+        } else if (type.equals("Instagram Profile")) {
+            contents = contents.trim();
+        } else {
+            contents = "";
+        }
+
+        String imageUrl = getOpenGraphContent(openGraph, "image");
+
+        return LinkMapper.toLinkInfo(title, type, contents, imageUrl);
+    }
+
+    private LinkResponse.LinkInfo fetchNaverBlogLinkInfo(String url) throws Exception {
+        Document doc = Jsoup.connect(url).get();
+
+        Element iframe = doc.selectFirst("iframe#mainFrame");
+        if (iframe == null) {
+            throw new Exception("Main frame not found.");
+        }
+        String postUrl = "https://blog.naver.com" + iframe.attr("src");
+
+        Document postDoc = Jsoup.connect(postUrl).get();
+
+        String title = postDoc.title();
+
+        String contents = postDoc.select(".se-main-container").text();
+        if (contents.length() > 300) {
+            contents = contents.substring(0, 300);
+        }
+        Elements images = postDoc.select(".se-main-container img");
+        String imageUrl = "";
+        for (Element img : images) {
+            imageUrl = img.attr("src");
+            break;
+        }
+
+        return LinkMapper.toLinkInfo(title, "Naver", contents, imageUrl);
+    }
+
+    private LinkResponse.LinkInfo fetchNaverCafeLinkInfo(String url) throws Exception {
+        Document doc = Jsoup.connect(url).get();
+
+        String title = doc.select("meta[property=og:title]").attr("content");
+        if (title.isEmpty()) {
+            title = doc.title();  // Fallback to the regular title if og:title is not present
+        }
+
+        String contents = doc.select("meta[property=og:description]").attr("content");
+        if (contents.isEmpty()) {
+            contents = doc.select("meta[name=description]").attr("content"); // Another fallback
+        }
+
+        String imageUrl = doc.select("meta[property=og:image]").attr("content");
+
+        return LinkMapper.toLinkInfo(title, "Naver", contents, imageUrl);
+
+    }
+
+
+    private LinkResponse.LinkInfo fetchTwitterLinkInfo(String url) throws Exception {
+        // Follow the redirect manually
+        Document doc = Jsoup.connect(url)
+                .followRedirects(true)
+                .get();
+
+        String title = doc.select("meta[property=og:title]").attr("content");
+        if (title.isEmpty()) {
+            title = doc.title();  // Fallback to the regular title if og:title is not present
+        }
+
+        String type = doc.select("meta[property=og:site_name]").attr("content");
+        if (type.isEmpty()) {
+            type = "Twitter";
+        }
+
+        String contents = doc.select("meta[property=og:description]").attr("content");
+        if (contents.isEmpty()) {
+            contents = doc.select("meta[name=description]").attr("content"); // Another fallback
+        }
+
+        String imageUrl = doc.select("meta[property=og:image]").attr("content");
+
+        return LinkMapper.toLinkInfo(title, type, contents, imageUrl);
     }
 
     private String getOpenGraphContent(OpenGraph openGraph, String property) {
