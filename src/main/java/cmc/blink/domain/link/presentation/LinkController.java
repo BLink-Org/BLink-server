@@ -118,6 +118,21 @@ public class LinkController {
         return ApiResponseDto.of(linkService.findLastViewedLinks(user));
     }
 
+    @PatchMapping("recent/{linkId}/exclude")
+    @Operation(summary = "최근 확인한 링크 목록에서 삭제 API", description = "최근 확인한 링크 목록에서 X 눌러서 삭제하는 API입니다.")
+    @Parameters({
+            @Parameter(name = "linkId", description = "링크의 아이디")
+    })
+    @ApiResponses({
+            @ApiResponse(responseCode = "Error Code: 2603", description = "<<BAD_REQUEST>> id로 링크를 찾을 수 없음.", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
+            @ApiResponse(responseCode = "Error Code: 2604", description = "<<FORBIDDEN>> 해당 링크의 소유자가 아님.", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class)))
+    })
+    public ApiResponseDto<Void> updateExcluded(@AuthUser User user, @PathVariable(name = "linkId")Long linkId) {
+        linkService.updateExcluded(user, linkId);
+
+        return ApiResponseDto.of("최근 확인한 링크 목록에서 삭제 되었습니다.", null);
+    }
+
     @GetMapping("/{linkId}/folders")
     @Operation(summary = "링크 폴더 목록 조회 API", description = "특정 링크가 저장 되어 있는 폴더 목록 조회 API입니다.")
     @Parameters({

@@ -26,6 +26,11 @@ public class LinkCommandAdapter {
         return linkRepository.save(link);
     }
 
+    public void updateExcluded(Link link) {
+        link.updateExcluded();
+        linkRepository.save(link);
+    }
+
     public Link moveToTrash(Link link) {
         link.moveToTrash();
         return linkRepository.save(link);

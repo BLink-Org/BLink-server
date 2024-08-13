@@ -293,6 +293,17 @@ public class LinkService {
     }
 
     @Transactional
+    public void updateExcluded(User user, Long linkId) {
+
+        Link link = linkQueryAdapter.findById(linkId);
+
+        if (link.getUser() != user)
+            throw new LinkException(ErrorCode.LINK_ACCESS_DENIED);
+
+        linkCommandAdapter.updateExcluded(link);
+    }
+
+    @Transactional
     public void moveLink(Long linkId, LinkRequest.LinkFolderMoveDto updateDto, User user) {
         Link link = linkQueryAdapter.findById(linkId);
 
