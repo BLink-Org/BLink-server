@@ -28,6 +28,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.util.HtmlUtils;
 
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -45,7 +47,7 @@ public class LinkService {
     private final LinkFolderCommandAdapter linkFolderCommandAdapter;
 
     @Transactional
-    public LinkResponse.LinkCreateDto saveLink(LinkRequest.LinkCreateDto createDto, User user) {
+    public LinkResponse.LinkCreateDto saveLink(LinkRequest.LinkCreateDto createDto, User user) throws Exception {
         // 입력받은 url이 사용자가 이미 저장했던 링크인지 검증
         if (linkQueryAdapter.isLinkUrlDuplicate(createDto.getUrl(), user))
             throw new LinkException(ErrorCode.DUPLICATE_LINK_URL);
@@ -54,12 +56,29 @@ public class LinkService {
         if (!isValidUrl(createDto.getUrl()))
             throw new LinkException(ErrorCode.INVALID_LINK_URL);
 
-        // 입력받은 url 웹 스크래핑 하여 링크 테이블에 저장할 필드(제목, 타입, 본문, 이미지 url) 가져오기
-        LinkResponse.LinkInfo linkInfo = null;
-        try {
-            linkInfo = fetchLinkInfo(createDto.getUrl());
-        } catch (IOException e) {
-            throw new LinkException(ErrorCode.LINK_SCRAPED_FAILED);
+        // Extract domain and fetch link info based on domain
+        String domain = extractDomain(createDto.getUrl());
+        LinkResponse.LinkInfo linkInfo;
+
+        switch (domain) {
+            case "youtu.be":
+            case "youtube.com":
+                linkInfo = fetchYoutubeLinkInfo(createDto.getUrl());
+                break;
+            case "instagram.com":
+                linkInfo = fetchInstagramLinkInfo(createDto.getUrl());
+                break;
+            case "blog.naver.com":
+            case "cafe.naver.com":
+                linkInfo = fetchNaverLinkInfo(createDto.getUrl());
+                break;
+            case "twitter.com":
+                linkInfo = fetchTwitterLinkInfo(createDto.getUrl());
+                break;
+
+            default:
+                linkInfo = fetchLinkInfo(createDto.getUrl());
+                break;
         }
 
         // 링크 레코드 생성
@@ -72,6 +91,16 @@ public class LinkService {
                 .forEach(folder -> linkFolderCommandAdapter.create(LinkFolderMapper.toLinkFolder(link, folder)));
 
         return LinkMapper.toLinkCreateDto(link);
+    }
+
+    private String extractDomain(String url) {
+        try {
+            URI uri = new URI(url);
+            String domain = uri.getHost();
+            return domain != null ? domain.startsWith("www.") ? domain.substring(4) : domain : "";
+        } catch (URISyntaxException e) {
+            throw new IllegalArgumentException("Invalid URL", e);
+        }
     }
 
     private boolean isValidUrl(String url) {
@@ -96,6 +125,66 @@ public class LinkService {
 
         } catch (Exception e) {
             return fetchLinkInfoWithJsoup(url);}
+    }
+
+    private LinkResponse.LinkInfo fetchYoutubeLinkInfo(String url) throws Exception {
+        OpenGraph openGraph = new OpenGraph(url, true);
+        Document doc = Jsoup.connect(url).get();
+
+        String title = getOpenGraphContent(openGraph, "title");
+        String type = getOpenGraphContent(openGraph, "site_name");
+        String channelTitle = doc.select("meta[itemprop='author']").attr("content");
+        if (channelTitle.isEmpty()) {
+            channelTitle = doc.select("link[itemprop='name']").attr("content");
+        }
+        String contents = getOpenGraphContent(openGraph, "description");
+
+        contents = String.format("%s | %s",channelTitle, contents);
+
+        String imageUrl = getOpenGraphContent(openGraph, "image");
+
+        return LinkMapper.toLinkInfo(title, type, contents, imageUrl);
+    }
+
+    private LinkResponse.LinkInfo fetchInstagramLinkInfo(String url) throws Exception {
+        OpenGraph openGraph = new OpenGraph(url, true);
+
+        System.out.println("openGraph = " + openGraph);
+
+        String title = getOpenGraphContent(openGraph, "title");
+        String type = openGraph.getBaseType();
+        String contents = getOpenGraphContent(openGraph, "description");
+        String imageUrl = getOpenGraphContent(openGraph, "image");
+
+        return LinkMapper.toLinkInfo(title, type, contents, imageUrl);
+
+    }
+
+    private LinkResponse.LinkInfo fetchNaverLinkInfo(String url) throws Exception {
+        OpenGraph openGraph = new OpenGraph(url, true);
+
+        System.out.println("openGraph = " + openGraph);
+
+        String title = getOpenGraphContent(openGraph, "title");
+        String type = openGraph.getBaseType();
+        String contents = getOpenGraphContent(openGraph, "description");
+        String imageUrl = getOpenGraphContent(openGraph, "image");
+
+        return LinkMapper.toLinkInfo(title, type, contents, imageUrl);
+    }
+
+
+    private LinkResponse.LinkInfo fetchTwitterLinkInfo(String url) throws Exception {
+        OpenGraph openGraph = new OpenGraph(url, true);
+
+        System.out.println("openGraph = " + openGraph);
+
+        String title = getOpenGraphContent(openGraph, "title");
+        String type = openGraph.getBaseType();
+        String contents = getOpenGraphContent(openGraph, "description");
+        String imageUrl = getOpenGraphContent(openGraph, "image");
+
+        return LinkMapper.toLinkInfo(title, type, contents, imageUrl);
     }
 
     private String getOpenGraphContent(OpenGraph openGraph, String property) {
