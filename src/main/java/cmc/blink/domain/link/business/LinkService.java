@@ -61,26 +61,14 @@ public class LinkService {
 
         // Extract domain and fetch link info based on domain
         String domain = extractDomain(createDto.getUrl());
-        LinkResponse.LinkInfo linkInfo;
-
-        switch (domain) {
-            case "youtu.be":
-            case "youtube.com":
-                linkInfo = fetchYoutubeLinkInfo(createDto.getUrl());
-                break;
-            case "instagram.com":
-                linkInfo = fetchInstagramLinkInfo(createDto.getUrl());
-                break;
-            case "blog.naver.com":
-                linkInfo = fetchNaverLinkInfo(createDto.getUrl());
-                break;
-            case "x.com":
-                linkInfo = fetchTwitterLinkInfo(createDto.getUrl());
-                break;
-            default:
-                linkInfo = fetchLinkInfo(createDto.getUrl());
-                break;
-        }
+        LinkResponse.LinkInfo linkInfo = switch (domain) {
+            case "youtu.be", "youtube.com" -> fetchYoutubeLinkInfo(createDto.getUrl());
+            case "instagram.com" -> fetchInstagramLinkInfo(createDto.getUrl());
+            case "blog.naver.com" -> fetchNaverLinkInfo(createDto.getUrl());
+            case "cafe.naver.com" -> fetchNaverCafeLinkInfo(createDto.getUrl());
+            case "x.com" -> fetchTwitterLinkInfo(createDto.getUrl());
+            default -> fetchLinkInfo(createDto.getUrl());
+        };
 
         // 링크 레코드 생성
         Link link = linkCommandAdapter.create(LinkMapper.toLink(createDto.getUrl(), user, linkInfo));
@@ -209,6 +197,25 @@ public class LinkService {
         return LinkMapper.toLinkInfo(title, "Naver", contents, imageUrl);
     }
 
+    private LinkResponse.LinkInfo fetchNaverCafeLinkInfo(String url) throws Exception {
+        Document doc = Jsoup.connect(url).get();
+
+        String title = doc.select("meta[property=og:title]").attr("content");
+        if (title.isEmpty()) {
+            title = doc.title();  // Fallback to the regular title if og:title is not present
+        }
+
+        String contents = doc.select("meta[property=og:description]").attr("content");
+        if (contents.isEmpty()) {
+            contents = doc.select("meta[name=description]").attr("content"); // Another fallback
+        }
+
+        String imageUrl = doc.select("meta[property=og:image]").attr("content");
+
+        return LinkMapper.toLinkInfo(title, "Naver", contents, imageUrl);
+
+    }
+
 
     private LinkResponse.LinkInfo fetchTwitterLinkInfo(String url) throws Exception {
         // Follow the redirect manually
@@ -216,7 +223,6 @@ public class LinkService {
                 .followRedirects(true)
                 .get();
 
-        // Extract metadata from the final document
         String title = doc.select("meta[property=og:title]").attr("content");
         if (title.isEmpty()) {
             title = doc.title();  // Fallback to the regular title if og:title is not present
@@ -224,7 +230,7 @@ public class LinkService {
 
         String type = doc.select("meta[property=og:site_name]").attr("content");
         if (type.isEmpty()) {
-            type = "Twitter";  // Fallback if site_name is not present
+            type = "Twitter";
         }
 
         String contents = doc.select("meta[property=og:description]").attr("content");
