@@ -112,6 +112,12 @@ public class LinkController {
         return ApiResponseDto.of(linkService.findTrashLinks(user, pageable));
     }
 
+    @GetMapping("/recent")
+    @Operation(summary = "최근 확인한 링크 목록 조회 API", description = "최근 확인한 링크 5개를 조회하는 API입니다.")
+    public ApiResponseDto<LinkResponse.LastViewedLinkListDto> findLastViewedLinks(@AuthUser User user) {
+        return ApiResponseDto.of(linkService.findLastViewedLinks(user));
+    }
+
     @GetMapping("/{linkId}/folders")
     @Operation(summary = "링크 폴더 목록 조회 API", description = "특정 링크가 저장 되어 있는 폴더 목록 조회 API입니다.")
     @Parameters({

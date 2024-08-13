@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -31,4 +32,8 @@ public interface LinkRepository extends JpaRepository<Link, Long> {
     Page<Link> findByUserAndIsTrashTrue(User user, Pageable pageable);
 
     int countByUserAndIsTrashTrue(User user);
+    @Query(value = "SELECT l FROM Link l WHERE l.user = :user AND l.isTrash = false AND l.isExcluded = false " +
+            "AND l.lastViewedAt IS NOT NULL AND l.lastViewedAt >= :recentDate " +
+            "ORDER BY l.lastViewedAt DESC")
+    List<Link> findTop5LastViewedLinksByUser(@Param("user") User user, @Param("recentDate") LocalDateTime recentDate, Pageable pageable);
 }

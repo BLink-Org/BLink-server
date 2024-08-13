@@ -50,4 +50,10 @@ public class LinkResponse {
     public static class FolderIdListDto {
         List<Long> folderIdList;
     }
+
+    @Getter
+    @Builder
+    public static class LastViewedLinkListDto {
+        List<LinkDto> linkDtos;
+    }
 }

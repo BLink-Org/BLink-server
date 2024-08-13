@@ -69,4 +69,10 @@ public class LinkMapper {
                         .collect(Collectors.toList()))
                 .build();
     }
+
+    public static LinkResponse.LastViewedLinkListDto toLastViewedLinkListDto(List<LinkResponse.LinkDto> linkDtos) {
+        return LinkResponse.LastViewedLinkListDto.builder()
+                .linkDtos(linkDtos)
+                .build();
+    }
 }
