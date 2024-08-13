@@ -96,4 +96,8 @@ public class Link extends BaseTimeEntity {
     }
 
 
+    public void updateExcluded() {
+        if (!this.isExcluded())
+            this.isExcluded = true;
+    }
 }

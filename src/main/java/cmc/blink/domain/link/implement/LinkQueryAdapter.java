@@ -1,16 +1,21 @@
 package cmc.blink.domain.link.implement;
 
+import cmc.blink.domain.link.business.LinkMapper;
 import cmc.blink.domain.link.persistence.Link;
 import cmc.blink.domain.link.persistence.LinkRepository;
+import cmc.blink.domain.link.presentation.dto.LinkResponse;
 import cmc.blink.domain.user.persistence.User;
 import cmc.blink.global.annotation.Adapter;
 import cmc.blink.global.exception.LinkException;
 import cmc.blink.global.exception.constant.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Adapter
 @RequiredArgsConstructor
@@ -66,5 +71,14 @@ public class LinkQueryAdapter {
 
     public int countTrashLinksByUser(User user) {
         return linkRepository.countByUserAndIsTrashTrue(user);
+    }
+
+    public List<Link> findTop5LastViewedLinksByUser(User user) {
+        Pageable pageable = PageRequest.of(0,5);
+        return linkRepository.findTop5LastViewedLinksByUser(user, LocalDateTime.now().minusDays(31), pageable);
+    }
+
+    public List<Link> searchLinksByUserAndQuery(User user, String query) {
+        return linkRepository.searchLinksByUserAndQuery(user, query);
     }
 }

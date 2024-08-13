@@ -7,6 +7,7 @@ import cmc.blink.domain.user.persistence.User;
 import cmc.blink.global.annotation.AuthUser;
 import cmc.blink.global.common.ApiResponseDto;
 import cmc.blink.global.exception.dto.ApiErrorResponse;
+import cmc.blink.global.validator.ByteSize;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.Parameters;
@@ -23,6 +24,8 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @Tag(name="링크", description = "링크 API 입니다.")
 @RestController
 @RequiredArgsConstructor
@@ -30,6 +33,14 @@ import org.springframework.web.bind.annotation.*;
 public class LinkController {
 
     private final LinkService linkService;
+
+    @GetMapping("/search")
+    @Operation(summary = "링크 검색 API", description = "링크 검색 API입니다.")
+    public ApiResponseDto<LinkResponse.LinkListDto> searchLinks(@AuthUser User user,
+                                                                  @ByteSize(max = 300, message = "검색어는 최대 300바이트까지만 허용됩니다.") @RequestParam(name="query") String query) {
+        return ApiResponseDto.of(linkService.searchLinks(query, user));
+    }
+
 
     @GetMapping
     @Operation(summary = "링크 목록 조회 API", description = "링크 목록 조회 API입니다.")
@@ -110,6 +121,27 @@ public class LinkController {
         Pageable pageable = PageRequest.of(page, size, direction, field);
 
         return ApiResponseDto.of(linkService.findTrashLinks(user, pageable));
+    }
+
+    @GetMapping("/recent")
+    @Operation(summary = "최근 확인한 링크 목록 조회 API", description = "최근 확인한 링크 5개를 조회하는 API입니다.")
+    public ApiResponseDto<LinkResponse.LastViewedLinkListDto> findLastViewedLinks(@AuthUser User user) {
+        return ApiResponseDto.of(linkService.findLastViewedLinks(user));
+    }
+
+    @PatchMapping("recent/{linkId}/exclude")
+    @Operation(summary = "최근 확인한 링크 목록에서 삭제 API", description = "최근 확인한 링크 목록에서 X 눌러서 삭제하는 API입니다.")
+    @Parameters({
+            @Parameter(name = "linkId", description = "링크의 아이디")
+    })
+    @ApiResponses({
+            @ApiResponse(responseCode = "Error Code: 2603", description = "<<BAD_REQUEST>> id로 링크를 찾을 수 없음.", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
+            @ApiResponse(responseCode = "Error Code: 2604", description = "<<FORBIDDEN>> 해당 링크의 소유자가 아님.", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class)))
+    })
+    public ApiResponseDto<Void> updateExcluded(@AuthUser User user, @PathVariable(name = "linkId")Long linkId) {
+        linkService.updateExcluded(user, linkId);
+
+        return ApiResponseDto.of("최근 확인한 링크 목록에서 삭제 되었습니다.", null);
     }
 
     @GetMapping("/{linkId}/folders")
