@@ -75,7 +75,6 @@ public class LinkService {
             case "twitter.com":
                 linkInfo = fetchTwitterLinkInfo(createDto.getUrl());
                 break;
-
             default:
                 linkInfo = fetchLinkInfo(createDto.getUrl());
                 break;
@@ -147,17 +146,38 @@ public class LinkService {
     }
 
     private LinkResponse.LinkInfo fetchInstagramLinkInfo(String url) throws Exception {
+
         OpenGraph openGraph = new OpenGraph(url, true);
 
-        System.out.println("openGraph = " + openGraph);
+        String type = getOpenGraphContent(openGraph, "site_name");
+
+        if (type.isEmpty()) {
+            type = "Instagram Profile";
+        }
 
         String title = getOpenGraphContent(openGraph, "title");
-        String type = openGraph.getBaseType();
+        int titleIndex = title.indexOf("on Instagram: ");
+        if (titleIndex != -1 && title.length() > titleIndex + "on Instagram: ".length()) {
+            title = title.substring(titleIndex + "on Instagram: ".length()).trim();
+        } else if (type.equals("Instagram Profile")) {
+            title = title.trim();
+        } else {
+            title = "";
+        }
+
         String contents = getOpenGraphContent(openGraph, "description");
+        int contentIndex = contents.indexOf(": ");
+        if (contentIndex != -1 && contents.length() > contentIndex + 2) {
+            contents = contents.substring(contentIndex + 2).trim();
+        } else if (type.equals("Instagram Profile")) {
+            contents = contents.trim();
+        } else {
+            contents = "";
+        }
+
         String imageUrl = getOpenGraphContent(openGraph, "image");
 
         return LinkMapper.toLinkInfo(title, type, contents, imageUrl);
-
     }
 
     private LinkResponse.LinkInfo fetchNaverLinkInfo(String url) throws Exception {
