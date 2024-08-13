@@ -17,8 +17,11 @@ import cmc.blink.global.exception.LinkException;
 import cmc.blink.global.exception.constant.ErrorCode;
 import cmc.blink.global.util.opengraph.OpenGraph;
 import lombok.RequiredArgsConstructor;
+import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -69,10 +72,9 @@ public class LinkService {
                 linkInfo = fetchInstagramLinkInfo(createDto.getUrl());
                 break;
             case "blog.naver.com":
-            case "cafe.naver.com":
                 linkInfo = fetchNaverLinkInfo(createDto.getUrl());
                 break;
-            case "twitter.com":
+            case "x.com":
                 linkInfo = fetchTwitterLinkInfo(createDto.getUrl());
                 break;
             default:
@@ -181,28 +183,56 @@ public class LinkService {
     }
 
     private LinkResponse.LinkInfo fetchNaverLinkInfo(String url) throws Exception {
-        OpenGraph openGraph = new OpenGraph(url, true);
+        Document doc = Jsoup.connect(url).get();
 
-        System.out.println("openGraph = " + openGraph);
+        Element iframe = doc.selectFirst("iframe#mainFrame");
+        if (iframe == null) {
+            throw new Exception("Main frame not found.");
+        }
+        String postUrl = "https://blog.naver.com" + iframe.attr("src");
 
-        String title = getOpenGraphContent(openGraph, "title");
-        String type = openGraph.getBaseType();
-        String contents = getOpenGraphContent(openGraph, "description");
-        String imageUrl = getOpenGraphContent(openGraph, "image");
+        Document postDoc = Jsoup.connect(postUrl).get();
 
-        return LinkMapper.toLinkInfo(title, type, contents, imageUrl);
+        String title = postDoc.title();
+
+        String contents = postDoc.select(".se-main-container").text();
+        if (contents.length() > 300) {
+            contents = contents.substring(0, 300);
+        }
+        Elements images = postDoc.select(".se-main-container img");
+        String imageUrl = "";
+        for (Element img : images) {
+            imageUrl = img.attr("src");
+            break;
+        }
+
+        return LinkMapper.toLinkInfo(title, "Naver", contents, imageUrl);
     }
 
 
     private LinkResponse.LinkInfo fetchTwitterLinkInfo(String url) throws Exception {
-        OpenGraph openGraph = new OpenGraph(url, true);
+        // Follow the redirect manually
+        Document doc = Jsoup.connect(url)
+                .followRedirects(true)
+                .get();
 
-        System.out.println("openGraph = " + openGraph);
+        // Extract metadata from the final document
+        String title = doc.select("meta[property=og:title]").attr("content");
+        if (title.isEmpty()) {
+            title = doc.title();  // Fallback to the regular title if og:title is not present
+        }
 
-        String title = getOpenGraphContent(openGraph, "title");
-        String type = openGraph.getBaseType();
-        String contents = getOpenGraphContent(openGraph, "description");
-        String imageUrl = getOpenGraphContent(openGraph, "image");
+        String type = doc.select("meta[property=og:site_name]").attr("content");
+        if (type.isEmpty()) {
+            type = "Twitter";  // Fallback if site_name is not present
+        }
+
+        String contents = doc.select("meta[property=og:description]").attr("content");
+        if (contents.isEmpty()) {
+            contents = doc.select("meta[name=description]").attr("content"); // Another fallback
+        }
+
+        String imageUrl = doc.select("meta[property=og:image]").attr("content");
 
         return LinkMapper.toLinkInfo(title, type, contents, imageUrl);
     }
