@@ -92,6 +92,16 @@ public class LinkService {
         return LinkMapper.toLinkCreateDto(link);
     }
 
+    public void saveDefaultLink(User user) {
+        try {
+            saveLink(LinkRequest.LinkCreateDto.builder()
+                    .url("https://yellow-harbor-c53.notion.site/Welcome-to-B-Link-02556e48d0ce428e80f29e4f96c92855?pvs=73")
+                    .build(), user);
+        } catch (Exception e) {
+            throw new LinkException(ErrorCode.LINK_SCRAPED_FAILED);
+        }
+    }
+
     private String extractDomain(String url) {
         try {
             URI uri = new URI(url);

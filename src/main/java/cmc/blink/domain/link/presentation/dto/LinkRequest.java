@@ -2,6 +2,7 @@ package cmc.blink.domain.link.presentation.dto;
 
 import cmc.blink.global.validator.ByteSize;
 import jakarta.validation.constraints.NotBlank;
+import lombok.Builder;
 import lombok.Getter;
 
 import java.util.List;
@@ -9,6 +10,7 @@ import java.util.List;
 public class LinkRequest {
 
     @Getter
+    @Builder
     public static class LinkCreateDto {
 
         @ByteSize(max = 2000, message = "링크 url은 최대 2000바이트 까지 입력할 수 있습니다.")
