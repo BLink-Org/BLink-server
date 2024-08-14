@@ -95,11 +95,11 @@ public class LinkService {
     }
 
     public void saveDefaultLink(User user) {
-        try {
-            saveLink(new LinkRequest.LinkCreateDto("https://yellow-harbor-c53.notion.site/Welcome-to-B-Link-02556e48d0ce428e80f29e4f96c92855?pvs=73", new ArrayList<>()), user);
-        } catch (Exception e) {
-            throw new LinkException(ErrorCode.LINK_SCRAPED_FAILED);
-        }
+
+        String defaultUrl = "https://yellow-harbor-c53.notion.site/Welcome-to-B-Link-02556e48d0ce428e80f29e4f96c92855?pvs=73";
+
+        linkCommandAdapter.create(LinkMapper.toLink(defaultUrl, user, LinkMapper.toLinkInfo("\uD83D\uDC4BWelcome to B.Link | B.Link에 오신 것을 환영합니다\uD83D\uDE0A",
+                "Default", "Tap here to see what awaits you!✨ | 링크를 클릭해 B.Link를 더 알아보실래요?", "")));
     }
 
     private String extractDomain(String url) {
