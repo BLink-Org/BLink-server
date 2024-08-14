@@ -1,5 +1,6 @@
 package cmc.blink.global.security;
 
+import cmc.blink.domain.link.business.LinkService;
 import cmc.blink.domain.user.business.UserMapper;
 import cmc.blink.domain.user.implement.UserCommandAdapter;
 import cmc.blink.domain.user.implement.UserQueryAdapter;
@@ -52,6 +53,7 @@ public class AuthService {
 
     private final UserQueryAdapter userQueryAdapter;
     private final UserCommandAdapter userCommandAdapter;
+    private final LinkService linkService;
 
     private final BlackListTokenRepository blackListTokenRepository;
     private final RefreshTokenRepository refreshTokenRepository;
@@ -73,12 +75,17 @@ public class AuthService {
 
         if(optionalUser.isEmpty()){
             user = UserMapper.toUser(userInfo, "google");
+            user.updateLoginTime();
+            userCommandAdapter.save(user);
+
+            linkService.saveDefaultLink(user);
         }else{
             user = optionalUser.get();
             user.update(userInfo.getName(), userInfo.getEmail(), "google");
+
+            user.updateLoginTime();
+            userCommandAdapter.save(user);
         }
-        user.updateLoginTime();
-        userCommandAdapter.save(user);
 
         UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
                 user.getEmail(),
@@ -101,12 +108,16 @@ public class AuthService {
 
         if(optionalUser.isEmpty()){
             user = UserMapper.toUser(requestDto, "apple");
+            user.updateLoginTime();
+            userCommandAdapter.save(user);
+
+            linkService.saveDefaultLink(user);
         }else{
             user = optionalUser.get();
             user.update(requestDto.getEmail(), "apple");
+            user.updateLoginTime();
+            userCommandAdapter.save(user);
         }
-        user.updateLoginTime();
-        userCommandAdapter.save(user);
 
         UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
                 user.getEmail(),
