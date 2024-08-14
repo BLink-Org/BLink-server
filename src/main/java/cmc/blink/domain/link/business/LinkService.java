@@ -30,6 +30,7 @@ import org.springframework.web.util.HtmlUtils;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -83,7 +84,8 @@ public class LinkService {
         // 링크 레코드 생성
         Link link = linkCommandAdapter.create(LinkMapper.toLink(createDto.getUrl(), user, linkInfo));
 
-        List<Folder> folders = folderQueryAdapter.findAllById(createDto.getFolderIdList());
+        List<Folder> folders = createDto.getFolderIdList().stream()
+                .map(folderQueryAdapter::findById).toList();
 
         folders.stream()
                 .map(folderCommandAdapter::updateLastLinkedAt)
@@ -94,9 +96,7 @@ public class LinkService {
 
     public void saveDefaultLink(User user) {
         try {
-            saveLink(LinkRequest.LinkCreateDto.builder()
-                    .url("https://yellow-harbor-c53.notion.site/Welcome-to-B-Link-02556e48d0ce428e80f29e4f96c92855?pvs=73")
-                    .build(), user);
+            saveLink(new LinkRequest.LinkCreateDto("https://yellow-harbor-c53.notion.site/Welcome-to-B-Link-02556e48d0ce428e80f29e4f96c92855?pvs=73", new ArrayList<>()), user);
         } catch (Exception e) {
             throw new LinkException(ErrorCode.LINK_SCRAPED_FAILED);
         }
@@ -126,7 +126,7 @@ public class LinkService {
             OpenGraph openGraph = new OpenGraph(url, true);
 
             String title = getOpenGraphContent(openGraph, "title");
-            String type = openGraph.getBaseType();
+            String type = getOpenGraphContent(openGraph, "site_name");
             String contents = getOpenGraphContent(openGraph, "description");
             String imageUrl = getOpenGraphContent(openGraph, "image");
 
