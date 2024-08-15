@@ -1,5 +1,6 @@
 package cmc.blink.domain.link.business;
 
+import cmc.blink.domain.folder.business.FolderMapper;
 import cmc.blink.domain.folder.implement.FolderCommandAdapter;
 import cmc.blink.domain.folder.implement.FolderQueryAdapter;
 import cmc.blink.domain.folder.persistence.Folder;
@@ -12,6 +13,7 @@ import cmc.blink.domain.link.persistence.LinkFolder;
 import cmc.blink.domain.link.presentation.dto.LinkRequest;
 import cmc.blink.domain.link.presentation.dto.LinkResponse;
 import cmc.blink.domain.user.persistence.User;
+import cmc.blink.global.exception.BadRequestException;
 import cmc.blink.global.exception.FolderException;
 import cmc.blink.global.exception.LinkException;
 import cmc.blink.global.exception.constant.ErrorCode;
@@ -21,6 +23,7 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import org.springframework.aot.generate.ClassNameGenerator;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -30,6 +33,7 @@ import org.springframework.web.util.HtmlUtils;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -83,13 +87,48 @@ public class LinkService {
         // 링크 레코드 생성
         Link link = linkCommandAdapter.create(LinkMapper.toLink(createDto.getUrl(), user, linkInfo));
 
-        List<Folder> folders = folderQueryAdapter.findAllById(createDto.getFolderIdList());
+        List<Folder> folders = createDto.getFolderIdList().stream()
+                .map(folderQueryAdapter::findById).toList();
 
         folders.stream()
                 .map(folderCommandAdapter::updateLastLinkedAt)
                 .forEach(folder -> linkFolderCommandAdapter.create(LinkFolderMapper.toLinkFolder(link, folder)));
 
         return LinkMapper.toLinkCreateDto(link);
+    }
+
+    public void saveDefaultLink(User user, String language) {
+
+        String defaultLink = "https://yellow-harbor-c53.notion.site/B-Link-e3e97b00d5d045889a39b2bdf430805c?pvs=4";
+        String linkTitle = "\uD83D\uDC4B B.Link에 오신 것을 환영해요!";
+        String contents = "클릭해 B.Link를 더 알아보실래요?✨";
+
+        String folderTitle = "기본 폴더";
+
+        if (language.equals("KO")){
+            defaultLink = "https://yellow-harbor-c53.notion.site/B-Link-e3e97b00d5d045889a39b2bdf430805c?pvs=4";
+            linkTitle = "\uD83D\uDC4B B.Link에 오신 것을 환영해요!";
+            contents = "클릭해 B.Link를 더 알아보실래요?✨";
+
+            folderTitle = "기본 폴더";
+        } else if (language.equals("EN")) {
+            defaultLink = "https://yellow-harbor-c53.notion.site/Welcome-to-B-Link-02556e48d0ce428e80f29e4f96c92855";
+            linkTitle = "\uD83D\uDC4B Welcome to B.Link! ✨";
+            contents = "Tap here to see what awaits you!";
+
+            folderTitle = "Basic folder";
+        } else {
+            throw new BadRequestException(ErrorCode.INVALID_LANGUAGE);
+        }
+
+        Link link = linkCommandAdapter.create(LinkMapper.toLink(defaultLink, user, LinkMapper.toLinkInfo(linkTitle,
+                "Default", contents, "")));
+
+        Folder folder = folderCommandAdapter.create(FolderMapper.toFolder(folderTitle, user, 1));
+
+        folderCommandAdapter.updateLastLinkedAt(folder);
+
+        linkFolderCommandAdapter.create(LinkFolderMapper.toLinkFolder(link, folder));
     }
 
     private String extractDomain(String url) {
@@ -116,7 +155,7 @@ public class LinkService {
             OpenGraph openGraph = new OpenGraph(url, true);
 
             String title = getOpenGraphContent(openGraph, "title");
-            String type = openGraph.getBaseType();
+            String type = getOpenGraphContent(openGraph, "site_name");
             String contents = getOpenGraphContent(openGraph, "description");
             String imageUrl = getOpenGraphContent(openGraph, "image");
 

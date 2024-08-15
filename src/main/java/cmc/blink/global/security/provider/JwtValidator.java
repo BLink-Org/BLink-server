@@ -1,9 +1,11 @@
 package cmc.blink.global.security.provider;
 
+import cmc.blink.global.exception.JwtAuthenticationException;
+import cmc.blink.global.exception.constant.ErrorCode;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.*;
+import io.jsonwebtoken.security.SecurityException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -27,10 +29,19 @@ public class JwtValidator {
     }
 
     public Claims getTokenClaims(String token, PublicKey publicKey) {
-        return Jwts.parserBuilder()
-                .setSigningKey(publicKey)
-                .build()
-                .parseClaimsJws(token)
-                .getBody();
+        try {
+            return Jwts.parserBuilder()
+                    .setSigningKey(publicKey)
+                    .build()
+                    .parseClaimsJws(token)
+                    .getBody();
+        } catch (SecurityException | MalformedJwtException | IllegalArgumentException e) {
+            throw new JwtAuthenticationException(ErrorCode.JWT_BAD_REQUEST);
+        } catch (ExpiredJwtException e) {
+            throw new JwtAuthenticationException(ErrorCode.JWT_TOKEN_EXPIRED);
+        } catch (UnsupportedJwtException e) {
+            throw new JwtAuthenticationException(ErrorCode.JWT_UNSUPPORTED_TOKEN);
+        }
     }
+
 }

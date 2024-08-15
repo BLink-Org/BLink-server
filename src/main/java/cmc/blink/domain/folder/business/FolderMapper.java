@@ -20,6 +20,14 @@ public class FolderMapper {
                 .build();
     }
 
+    public static Folder toFolder(String title, User user, int sortOrder) {
+        return Folder.builder()
+                .user(user)
+                .title(title)
+                .sortOrder(sortOrder)
+                .build();
+    }
+
     public static FolderResponse.FolderDto toFolderDto(Folder folder, int linkCount, boolean isRecent){
         return FolderResponse.FolderDto.builder()
                 .id(folder.getId())
