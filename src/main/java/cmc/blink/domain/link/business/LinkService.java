@@ -1,5 +1,6 @@
 package cmc.blink.domain.link.business;
 
+import cmc.blink.domain.folder.business.FolderMapper;
 import cmc.blink.domain.folder.implement.FolderCommandAdapter;
 import cmc.blink.domain.folder.implement.FolderQueryAdapter;
 import cmc.blink.domain.folder.persistence.Folder;
@@ -12,6 +13,7 @@ import cmc.blink.domain.link.persistence.LinkFolder;
 import cmc.blink.domain.link.presentation.dto.LinkRequest;
 import cmc.blink.domain.link.presentation.dto.LinkResponse;
 import cmc.blink.domain.user.persistence.User;
+import cmc.blink.global.exception.BadRequestException;
 import cmc.blink.global.exception.FolderException;
 import cmc.blink.global.exception.LinkException;
 import cmc.blink.global.exception.constant.ErrorCode;
@@ -21,6 +23,7 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import org.springframework.aot.generate.ClassNameGenerator;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -94,12 +97,38 @@ public class LinkService {
         return LinkMapper.toLinkCreateDto(link);
     }
 
-    public void saveDefaultLink(User user) {
+    public void saveDefaultLink(User user, String language) {
 
-        String defaultUrl = "https://yellow-harbor-c53.notion.site/Welcome-to-B-Link-02556e48d0ce428e80f29e4f96c92855?pvs=73";
+        String defaultLink = "https://yellow-harbor-c53.notion.site/B-Link-e3e97b00d5d045889a39b2bdf430805c?pvs=4";
+        String linkTitle = "\uD83D\uDC4B B.Link에 오신 것을 환영해요!";
+        String contents = "클릭해 B.Link를 더 알아보실래요?✨";
 
-        linkCommandAdapter.create(LinkMapper.toLink(defaultUrl, user, LinkMapper.toLinkInfo("\uD83D\uDC4BWelcome to B.Link | B.Link에 오신 것을 환영합니다\uD83D\uDE0A",
-                "Default", "Tap here to see what awaits you!✨ | 링크를 클릭해 B.Link를 더 알아보실래요?", "")));
+        String folderTitle = "기본 폴더";
+
+        if (language.equals("KO")){
+            defaultLink = "https://yellow-harbor-c53.notion.site/B-Link-e3e97b00d5d045889a39b2bdf430805c?pvs=4";
+            linkTitle = "\uD83D\uDC4B B.Link에 오신 것을 환영해요!";
+            contents = "클릭해 B.Link를 더 알아보실래요?✨";
+
+            folderTitle = "기본 폴더";
+        } else if (language.equals("EN")) {
+            defaultLink = "https://yellow-harbor-c53.notion.site/Welcome-to-B-Link-02556e48d0ce428e80f29e4f96c92855";
+            linkTitle = "\uD83D\uDC4B Welcome to B.Link! ✨";
+            contents = "Tap here to see what awaits you!";
+
+            folderTitle = "Basic folder";
+        } else {
+            throw new BadRequestException(ErrorCode.INVALID_LANGUAGE);
+        }
+
+        Link link = linkCommandAdapter.create(LinkMapper.toLink(defaultLink, user, LinkMapper.toLinkInfo(linkTitle,
+                "Default", contents, "")));
+
+        Folder folder = folderCommandAdapter.create(FolderMapper.toFolder(folderTitle, user, 1));
+
+        folderCommandAdapter.updateLastLinkedAt(folder);
+
+        linkFolderCommandAdapter.create(LinkFolderMapper.toLinkFolder(link, folder));
     }
 
     private String extractDomain(String url) {
