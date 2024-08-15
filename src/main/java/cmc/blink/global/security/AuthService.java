@@ -69,6 +69,8 @@ public class AuthService {
 
         GoogleUserInfo userInfo = googleTokenVerifierClient.verifyIdToken(requestDto.getIdToken());
 
+        String language = requestDto.getLanguage();
+
         Optional<User> optionalUser = userQueryAdapter.findByEmail(userInfo.getEmail());
 
         User user;
@@ -78,7 +80,7 @@ public class AuthService {
             user.updateLoginTime();
             userCommandAdapter.save(user);
 
-            linkService.saveDefaultLink(user);
+            linkService.saveDefaultLink(user, language);
         }else{
             user = optionalUser.get();
             user.update(userInfo.getName(), userInfo.getEmail(), "google");
@@ -102,6 +104,8 @@ public class AuthService {
     public AuthResponse.LoginResponseDto appleLogin(AuthRequest.AppleLoginRequestDto requestDto) throws NoSuchAlgorithmException, InvalidKeySpecException, JsonProcessingException {
         String accountId = getAppleAccountId(requestDto.getIdentityToken());
 
+        String language = requestDto.getLanguage();
+
         Optional<User> optionalUser = userQueryAdapter.findByEmail(requestDto.getEmail());
 
         User user;
@@ -111,7 +115,7 @@ public class AuthService {
             user.updateLoginTime();
             userCommandAdapter.save(user);
 
-            linkService.saveDefaultLink(user);
+            linkService.saveDefaultLink(user, language);
         }else{
             user = optionalUser.get();
             user.update(requestDto.getEmail(), "apple");
