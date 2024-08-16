@@ -23,6 +23,7 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -34,9 +35,7 @@ import org.springframework.web.util.HtmlUtils;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -149,6 +148,18 @@ public class LinkService {
             String contents = getOpenGraphContent(openGraph, "description");
             String imageUrl = getOpenGraphContent(openGraph, "image");
 
+            if (title.length() > 400) {
+                title = title.substring(0, 400);
+            } else {
+                title = title;
+            }
+
+            if (contents != null && contents.length() > 2000) {
+                contents = contents.substring(0, 2000);
+            } else {
+                contents = contents;
+            }
+
             return LinkMapper.toLinkInfo(title, type, contents, imageUrl);
         } catch (IOException e) {
             throw new LinkException(ErrorCode.LINK_SCRAPED_FAILED);
@@ -163,7 +174,7 @@ public class LinkService {
 
             String title = doc.select("meta[property=og:title]").attr("content");
             if (title.isEmpty()) {
-                title = doc.title();  // Fallback to the regular title if og:title is not present
+                title = doc.title();
             }
 
             String type = "YouTube";
@@ -181,6 +192,18 @@ public class LinkService {
             String contents = String.format("%s | %s", channelTitle, description);
 
             String imageUrl = doc.select("meta[property=og:image]").attr("content");
+
+            if (title.length() > 400) {
+                title = title.substring(0, 400);
+            } else {
+                title = title;
+            }
+
+            if (contents != null && contents.length() > 2000) {
+                contents = contents.substring(0, 2000);
+            } else {
+                contents = contents;
+            }
 
             return LinkMapper.toLinkInfo(title, type, contents, imageUrl);
         } catch (Exception e) {
@@ -222,6 +245,18 @@ public class LinkService {
 
             String imageUrl = getOpenGraphContent(openGraph, "image");
 
+            if (title.length() > 400) {
+                title = title.substring(0, 400);
+            } else {
+                title = title;
+            }
+
+            if (contents != null && contents.length() > 2000) {
+                contents = contents.substring(0, 2000);
+            } else {
+                contents = contents;
+            }
+
             return LinkMapper.toLinkInfo(title, type, contents, imageUrl);
         } catch (Exception e) {
             throw new LinkException(ErrorCode.LINK_SCRAPED_FAILED);
@@ -253,6 +288,18 @@ public class LinkService {
                 break;
             }
 
+            if (title.length() > 400) {
+                title = title.substring(0, 400);
+            } else {
+                title = title;
+            }
+
+            if (contents != null && contents.length() > 2000) {
+                contents = contents.substring(0, 2000);
+            } else {
+                contents = contents;
+            }
+
             return LinkMapper.toLinkInfo(title, "Naver", contents, imageUrl);
         } catch (IOException e) {
             throw new LinkException(ErrorCode.LINK_SCRAPED_FAILED);
@@ -274,6 +321,18 @@ public class LinkService {
             }
 
             String imageUrl = doc.select("meta[property=og:image]").attr("content");
+
+            if (title.length() > 400) {
+                title = title.substring(0, 400);
+            } else {
+                title = title;
+            }
+
+            if (contents != null && contents.length() > 2000) {
+                contents = contents.substring(0, 2000);
+            } else {
+                contents = contents;
+            }
 
             return LinkMapper.toLinkInfo(title, "Naver", contents, imageUrl);
         } catch (IOException e) {
@@ -305,6 +364,18 @@ public class LinkService {
 
             String imageUrl = doc.select("meta[property=og:image]").attr("content");
 
+            if (title.length() > 400) {
+                title = title.substring(0, 400);
+            } else {
+                title = title;
+            }
+
+            if (contents != null && contents.length() > 2000) {
+                contents = contents.substring(0, 2000);
+            } else {
+                contents = contents;
+            }
+
             return LinkMapper.toLinkInfo(title, type, contents, imageUrl);
         } catch (IOException e) {
             throw new LinkException(ErrorCode.LINK_SCRAPED_FAILED);
@@ -324,6 +395,18 @@ public class LinkService {
         String type = doc.select("meta[name=type]").attr("content");
         String contents = doc.select("meta[name=description]").attr("content");
         String imageUrl = doc.select("meta[property=og:image]").attr("content");
+
+        if (title.length() > 400) {
+            title = title.substring(0, 400);
+        } else {
+            title = title;
+        }
+
+        if (contents != null && contents.length() > 2000) {
+            contents = contents.substring(0, 2000);
+        } else {
+            contents = contents;
+        }
 
         return LinkMapper.toLinkInfo(title, type, contents, imageUrl);
     }

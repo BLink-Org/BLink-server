@@ -8,8 +8,7 @@ import java.io.InputStreamReader;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.Hashtable;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -69,7 +68,7 @@ public class OpenGraph
         // download the (X)HTML content, but only up to the closing head tag. We do not want to waste resources parsing irrelevant content
         URL pageURL = new URL(url);
         URLConnection siteConnection = pageURL.openConnection();
-        siteConnection.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3");
+        //siteConnection.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3");
         Charset charset = getConnectionCharset(siteConnection);
         BufferedReader dis = new BufferedReader(new InputStreamReader(siteConnection.getInputStream(), charset));
         String inputLine;
