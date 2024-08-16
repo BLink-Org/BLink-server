@@ -48,6 +48,11 @@ public class LinkController {
         return ApiResponseDto.of(linkService.searchLinks(query, user, page, size));
     }
 
+    @PostMapping("/exists")
+    @Operation(summary = "링크 존재 여부 확인 API", description = "사용자가 해당 url로 저장한 링크가 존재하는지 확인하는 API입니다.")
+    public ApiResponseDto<Boolean> checkLinkExists(@RequestBody @Valid LinkRequest.LinkToggleDto requestDto, @AuthUser User user) {
+        return ApiResponseDto.of(linkService.checkLinkExists(requestDto, user));
+    }
 
     @GetMapping
     @Operation(summary = "링크 목록 조회 API", description = "링크 목록 조회 API입니다.")

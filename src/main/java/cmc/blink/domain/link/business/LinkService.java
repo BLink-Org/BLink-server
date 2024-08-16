@@ -48,6 +48,12 @@ public class LinkService {
     private final LinkFolderQueryAdapter linkFolderQueryAdapter;
     private final LinkFolderCommandAdapter linkFolderCommandAdapter;
 
+    private static final List<String> USER_AGENT_LIST = Arrays.asList(
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36",
+            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36",
+            "Mozilla/5.0 (Macintosh; Intel Mac OS X 13_1) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.1 Safari/605.1.15"
+    );
+
     @Transactional
     public LinkResponse.LinkCreateDto saveLink(LinkRequest.LinkCreateDto createDto, User user) throws Exception {
         // 입력받은 url이 사용자가 이미 저장했던 링크인지 검증
@@ -139,6 +145,11 @@ public class LinkService {
         }
     }
 
+    private static String getRandomUserAgent() {
+        Random random = new Random();
+        return USER_AGENT_LIST.get(random.nextInt(USER_AGENT_LIST.size()));
+    }
+
     private LinkResponse.LinkInfo fetchLinkInfo(String url) throws IOException {
         try {
             OpenGraph openGraph = new OpenGraph(url, true);
@@ -161,7 +172,10 @@ public class LinkService {
 
     private LinkResponse.LinkInfo fetchYoutubeLinkInfo(String url) {
         try {
-            Document doc = Jsoup.connect(url).get();
+            String userAgent = getRandomUserAgent();
+            Document doc = Jsoup.connect(url)
+                    .userAgent(userAgent)
+                    .get();
 
             String title = doc.select("meta[property=og:title]").attr("content");
             if (title.isEmpty()) {
@@ -170,7 +184,7 @@ public class LinkService {
 
             String type = "YouTube";
 
-            String channelTitle = doc.select("meta[itemprop='author']").attr("content");
+            String channelTitle = doc.select("meta[itemprop='au thor']").attr("content");
             if (channelTitle.isEmpty()) {
                 channelTitle = doc.select("link[itemprop='name']").attr("content");
             }
@@ -267,7 +281,7 @@ public class LinkService {
 
             String title = doc.select("meta[property=og:title]").attr("content");
             if (title.isEmpty()) {
-                title = doc.title();  // Fallback to the regular title if og:title is not present
+                title = doc.title();
             }
 
             String contents = doc.select("meta[property=og:description]").attr("content");
@@ -565,5 +579,10 @@ public class LinkService {
                 }).toList();
 
         return linkDtos;
+    }
+
+    @Transactional
+    public Boolean checkLinkExists(LinkRequest.LinkToggleDto requestDto, User user) {
+        return linkQueryAdapter.isLinkUrlDuplicate(requestDto.getUrl(), user);
     }
 }
