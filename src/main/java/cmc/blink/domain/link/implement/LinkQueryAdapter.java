@@ -15,6 +15,7 @@ import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Adapter
@@ -22,8 +23,6 @@ import java.util.stream.Collectors;
 public class LinkQueryAdapter {
 
     private final LinkRepository linkRepository;
-
-
 
     public boolean isLinkUrlDuplicate(String url, User user){
         return linkRepository.existsByUrlAndUser(url, user);
