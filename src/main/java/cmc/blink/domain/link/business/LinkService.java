@@ -170,7 +170,9 @@ public class LinkService {
     private LinkResponse.LinkInfo fetchYoutubeLinkInfo(String url) {
         try {
             OpenGraph openGraph = new OpenGraph(url, true);
-            Document doc = Jsoup.connect(url).get();
+            Document doc = Jsoup.connect(url)
+                    .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36")
+                    .get();
 
             String title = getOpenGraphContent(openGraph, "title");
             String type = getOpenGraphContent(openGraph, "site_name");
@@ -178,9 +180,12 @@ public class LinkService {
             if (channelTitle.isEmpty()) {
                 channelTitle = doc.select("link[itemprop='name']").attr("content");
             }
-            String contents = getOpenGraphContent(openGraph, "description");
+            String description = getOpenGraphContent(openGraph, "description");
 
-            contents = String.format("%s | %s", channelTitle, contents);
+            String contents = String.format("%s | %s", channelTitle, description);
+
+            if (channelTitle.isEmpty())
+                contents = description;
 
             String imageUrl = getOpenGraphContent(openGraph, "image");
 
