@@ -33,6 +33,10 @@ public class LinkQueryAdapter {
         return linkRepository.findById(id).orElseThrow(()-> new LinkException(ErrorCode.LINK_NOT_FOUND));
     }
 
+    public Link findByUserAndUrl(User user, String url) {
+        return linkRepository.findByUserAndUrl(user, url).orElseThrow(()-> new LinkException(ErrorCode.LINK_NOT_FOUND));
+    }
+
     public int countByUser(User user) {
         return linkRepository.countByUser(user);
     }

@@ -23,7 +23,6 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -71,7 +70,11 @@ public class LinkService {
         };
 
         // 링크 레코드 생성
-        Link link = linkCommandAdapter.create(LinkMapper.toLink(createDto.getUrl(), user, linkInfo));
+
+        Link link = LinkMapper.toLink(createDto.getUrl(), user, linkInfo);
+        link.validateAndSetFields(link.getTitle(), link.getContents(), link.getImageUrl());
+
+        linkCommandAdapter.create(link);
 
         List<Folder> folders = createDto.getFolderIdList().stream()
                 .map(folderQueryAdapter::findById).toList();
@@ -85,11 +88,11 @@ public class LinkService {
 
     public void saveDefaultLink(User user, String language) {
 
-        String defaultLink = "https://yellow-harbor-c53.notion.site/B-Link-e3e97b00d5d045889a39b2bdf430805c?pvs=4";
-        String linkTitle = "\uD83D\uDC4B B.Link에 오신 것을 환영해요!";
-        String contents = "클릭해 B.Link를 더 알아보실래요?✨";
+        String defaultLink;
+        String linkTitle;
+        String contents;
 
-        String folderTitle = "기본 폴더";
+        String folderTitle;
 
         if (language.equals("KO")){
             defaultLink = "https://yellow-harbor-c53.notion.site/B-Link-e3e97b00d5d045889a39b2bdf430805c?pvs=4";
@@ -148,18 +151,6 @@ public class LinkService {
             String contents = getOpenGraphContent(openGraph, "description");
             String imageUrl = getOpenGraphContent(openGraph, "image");
 
-            if (title.length() > 400) {
-                title = title.substring(0, 400);
-            } else {
-                title = title;
-            }
-
-            if (contents != null && contents.length() > 2000) {
-                contents = contents.substring(0, 2000);
-            } else {
-                contents = contents;
-            }
-
             return LinkMapper.toLinkInfo(title, type, contents, imageUrl);
         } catch (IOException e) {
             throw new LinkException(ErrorCode.LINK_SCRAPED_FAILED);
@@ -192,18 +183,6 @@ public class LinkService {
             String contents = String.format("%s | %s", channelTitle, description);
 
             String imageUrl = doc.select("meta[property=og:image]").attr("content");
-
-            if (title.length() > 400) {
-                title = title.substring(0, 400);
-            } else {
-                title = title;
-            }
-
-            if (contents != null && contents.length() > 2000) {
-                contents = contents.substring(0, 2000);
-            } else {
-                contents = contents;
-            }
 
             return LinkMapper.toLinkInfo(title, type, contents, imageUrl);
         } catch (Exception e) {
@@ -245,18 +224,6 @@ public class LinkService {
 
             String imageUrl = getOpenGraphContent(openGraph, "image");
 
-            if (title.length() > 400) {
-                title = title.substring(0, 400);
-            } else {
-                title = title;
-            }
-
-            if (contents != null && contents.length() > 2000) {
-                contents = contents.substring(0, 2000);
-            } else {
-                contents = contents;
-            }
-
             return LinkMapper.toLinkInfo(title, type, contents, imageUrl);
         } catch (Exception e) {
             throw new LinkException(ErrorCode.LINK_SCRAPED_FAILED);
@@ -288,18 +255,6 @@ public class LinkService {
                 break;
             }
 
-            if (title.length() > 400) {
-                title = title.substring(0, 400);
-            } else {
-                title = title;
-            }
-
-            if (contents != null && contents.length() > 2000) {
-                contents = contents.substring(0, 2000);
-            } else {
-                contents = contents;
-            }
-
             return LinkMapper.toLinkInfo(title, "Naver", contents, imageUrl);
         } catch (IOException e) {
             throw new LinkException(ErrorCode.LINK_SCRAPED_FAILED);
@@ -321,18 +276,6 @@ public class LinkService {
             }
 
             String imageUrl = doc.select("meta[property=og:image]").attr("content");
-
-            if (title.length() > 400) {
-                title = title.substring(0, 400);
-            } else {
-                title = title;
-            }
-
-            if (contents != null && contents.length() > 2000) {
-                contents = contents.substring(0, 2000);
-            } else {
-                contents = contents;
-            }
 
             return LinkMapper.toLinkInfo(title, "Naver", contents, imageUrl);
         } catch (IOException e) {
@@ -364,18 +307,6 @@ public class LinkService {
 
             String imageUrl = doc.select("meta[property=og:image]").attr("content");
 
-            if (title.length() > 400) {
-                title = title.substring(0, 400);
-            } else {
-                title = title;
-            }
-
-            if (contents != null && contents.length() > 2000) {
-                contents = contents.substring(0, 2000);
-            } else {
-                contents = contents;
-            }
-
             return LinkMapper.toLinkInfo(title, type, contents, imageUrl);
         } catch (IOException e) {
             throw new LinkException(ErrorCode.LINK_SCRAPED_FAILED);
@@ -395,18 +326,6 @@ public class LinkService {
         String type = doc.select("meta[name=type]").attr("content");
         String contents = doc.select("meta[name=description]").attr("content");
         String imageUrl = doc.select("meta[property=og:image]").attr("content");
-
-        if (title.length() > 400) {
-            title = title.substring(0, 400);
-        } else {
-            title = title;
-        }
-
-        if (contents != null && contents.length() > 2000) {
-            contents = contents.substring(0, 2000);
-        } else {
-            contents = contents;
-        }
 
         return LinkMapper.toLinkInfo(title, type, contents, imageUrl);
     }
@@ -517,6 +436,13 @@ public class LinkService {
 
         if (link.getUser() != user)
             throw new LinkException(ErrorCode.LINK_ACCESS_DENIED);
+
+        linkCommandAdapter.toggleLink(link);
+    }
+
+    @Transactional
+    public void toggleLink(LinkRequest.LinkToggleDto requestDto, User user) {
+        Link link = linkQueryAdapter.findByUserAndUrl(user, requestDto.getUrl());
 
         linkCommandAdapter.toggleLink(link);
     }
