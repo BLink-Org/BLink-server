@@ -78,7 +78,7 @@ public class LinkQueryAdapter {
         return linkRepository.findTop5LastViewedLinksByUser(user, LocalDateTime.now().minusDays(31), pageable);
     }
 
-    public List<Link> searchLinksByUserAndQuery(User user, String query) {
-        return linkRepository.searchLinksByUserAndQuery(user, query);
+    public Page<Link> searchLinksByUserAndQuery(User user, String query, Pageable pageable) {
+        return linkRepository.searchLinksByUserAndQuery(user, query, pageable);
     }
 }
