@@ -13,6 +13,9 @@ import java.util.Optional;
 
 public interface LinkRepository extends JpaRepository<Link, Long> {
     Optional<Link> findById(Long id);
+
+    Optional<Link> findByUserAndUrl(User user, String url);
+
     boolean existsByUrlAndUser(String url, User user);
     int countByUser(User user);
 

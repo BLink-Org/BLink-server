@@ -24,7 +24,6 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 
 @Tag(name="링크", description = "링크 API 입니다.")
 @RestController
@@ -280,6 +279,19 @@ public class LinkController {
     public ApiResponseDto<?> toggleLink(@PathVariable(name = "linkId") Long linkId, @AuthUser User user) {
 
         linkService.toggleLink(linkId, user);
+
+        return ApiResponseDto.of("링크 고정 토글이 완료 되었습니다.", null);
+    }
+
+    @PatchMapping("/pin/toggle")
+    @Operation(summary = "웹뷰 전용 링크 고정 토글 API", description = "웹뷰 전용 링크 고정/ 고정 취소 토글 API입니다.")
+    @ApiResponses({
+            @ApiResponse(description = "<<OK>> 링크 고정 토글 완료.", content = @Content(schema = @Schema(implementation = ApiResponseDto.class))),
+            @ApiResponse(responseCode = "Error Code: 2603", description = "<<BAD_REQUEST>> 저장되어 있지 않은 링크 url은 핀 고정 불가능.", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
+    })
+    public ApiResponseDto<?> toggleLink(@RequestBody LinkRequest.LinkToggleDto requestDto, @AuthUser User user) {
+
+        linkService.toggleLink(requestDto, user);
 
         return ApiResponseDto.of("링크 고정 토글이 완료 되었습니다.", null);
     }

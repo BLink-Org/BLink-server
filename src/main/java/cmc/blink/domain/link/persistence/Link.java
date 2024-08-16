@@ -100,4 +100,11 @@ public class Link extends BaseTimeEntity {
         if (!this.isExcluded())
             this.isExcluded = true;
     }
+
+    public void validateAndSetFields(String title, String contents, String imageUrl) {
+        this.title = (title != null && title.length() > 400) ? title.substring(0, 400) : title;
+        this.contents = (contents != null && contents.length() > 2000) ? contents.substring(0, 2000) : contents;
+        this.imageUrl = (imageUrl != null && imageUrl.length() > 2000) ? "" : imageUrl;
+    }
+
 }

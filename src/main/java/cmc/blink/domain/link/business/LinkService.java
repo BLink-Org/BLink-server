@@ -34,9 +34,7 @@ import org.springframework.web.util.HtmlUtils;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -72,7 +70,11 @@ public class LinkService {
         };
 
         // 링크 레코드 생성
-        Link link = linkCommandAdapter.create(LinkMapper.toLink(createDto.getUrl(), user, linkInfo));
+
+        Link link = LinkMapper.toLink(createDto.getUrl(), user, linkInfo);
+        link.validateAndSetFields(link.getTitle(), link.getContents(), link.getImageUrl());
+
+        linkCommandAdapter.create(link);
 
         List<Folder> folders = createDto.getFolderIdList().stream()
                 .map(folderQueryAdapter::findById).toList();
@@ -86,11 +88,11 @@ public class LinkService {
 
     public void saveDefaultLink(User user, String language) {
 
-        String defaultLink = "https://yellow-harbor-c53.notion.site/B-Link-e3e97b00d5d045889a39b2bdf430805c?pvs=4";
-        String linkTitle = "\uD83D\uDC4B B.Link에 오신 것을 환영해요!";
-        String contents = "클릭해 B.Link를 더 알아보실래요?✨";
+        String defaultLink;
+        String linkTitle;
+        String contents;
 
-        String folderTitle = "기본 폴더";
+        String folderTitle;
 
         if (language.equals("KO")){
             defaultLink = "https://yellow-harbor-c53.notion.site/B-Link-e3e97b00d5d045889a39b2bdf430805c?pvs=4";
@@ -163,7 +165,7 @@ public class LinkService {
 
             String title = doc.select("meta[property=og:title]").attr("content");
             if (title.isEmpty()) {
-                title = doc.title();  // Fallback to the regular title if og:title is not present
+                title = doc.title();
             }
 
             String type = "YouTube";
@@ -434,6 +436,13 @@ public class LinkService {
 
         if (link.getUser() != user)
             throw new LinkException(ErrorCode.LINK_ACCESS_DENIED);
+
+        linkCommandAdapter.toggleLink(link);
+    }
+
+    @Transactional
+    public void toggleLink(LinkRequest.LinkToggleDto requestDto, User user) {
+        Link link = linkQueryAdapter.findByUserAndUrl(user, requestDto.getUrl());
 
         linkCommandAdapter.toggleLink(link);
     }
