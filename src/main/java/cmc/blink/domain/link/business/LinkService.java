@@ -23,9 +23,10 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
-import org.springframework.aot.generate.ClassNameGenerator;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.util.HtmlUtils;
@@ -33,7 +34,6 @@ import org.springframework.web.util.HtmlUtils;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -49,19 +49,6 @@ public class LinkService {
     private final FolderCommandAdapter folderCommandAdapter;
     private final LinkFolderQueryAdapter linkFolderQueryAdapter;
     private final LinkFolderCommandAdapter linkFolderCommandAdapter;
-
-    @Transactional(readOnly = true)
-    public LinkResponse.LinkListDto searchLinks(String query, User user) {
-
-        List<Link> links = linkQueryAdapter.searchLinksByUserAndQuery(user, query);
-
-        int linkCount = links.size();
-
-        List<LinkResponse.LinkDto> linkDtos = findRepresentFolderName(links);
-
-        return LinkMapper.toLinkListDto(linkDtos, linkCount);
-
-    }
 
     @Transactional
     public LinkResponse.LinkCreateDto saveLink(LinkRequest.LinkCreateDto createDto, User user) throws Exception {
@@ -169,25 +156,30 @@ public class LinkService {
 
     private LinkResponse.LinkInfo fetchYoutubeLinkInfo(String url) {
         try {
-            OpenGraph openGraph = new OpenGraph(url, true);
             Document doc = Jsoup.connect(url)
                     .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36")
                     .get();
 
-            String title = getOpenGraphContent(openGraph, "title");
-            String type = getOpenGraphContent(openGraph, "site_name");
+            String title = doc.select("meta[property=og:title]").attr("content");
+            if (title.isEmpty()) {
+                title = doc.title();  // Fallback to the regular title if og:title is not present
+            }
+
+            String type = "YouTube";
+
             String channelTitle = doc.select("meta[itemprop='author']").attr("content");
             if (channelTitle.isEmpty()) {
                 channelTitle = doc.select("link[itemprop='name']").attr("content");
             }
-            String description = getOpenGraphContent(openGraph, "description");
+
+            String description = doc.select("meta[property=og:description]").attr("content");
+            if (description.isEmpty()) {
+                description = doc.select("meta[name=description]").attr("content");
+            }
 
             String contents = String.format("%s | %s", channelTitle, description);
 
-            if (channelTitle.isEmpty())
-                contents = description;
-
-            String imageUrl = getOpenGraphContent(openGraph, "image");
+            String imageUrl = doc.select("meta[property=og:image]").attr("content");
 
             return LinkMapper.toLinkInfo(title, type, contents, imageUrl);
         } catch (Exception e) {
@@ -442,6 +434,20 @@ public class LinkService {
             throw new LinkException(ErrorCode.LINK_ACCESS_DENIED);
 
         linkCommandAdapter.toggleLink(link);
+    }
+
+    @Transactional(readOnly = true)
+    public LinkResponse.LinkListDto searchLinks(String query, User user, int page, int size) {
+
+        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+
+        Page<Link> linkPage = linkQueryAdapter.searchLinksByUserAndQuery(user, query, pageable);
+
+        int linkCount = (int) linkPage.getTotalElements();
+
+        List<LinkResponse.LinkDto> linkDtos = findRepresentFolderName(linkPage.getContent());
+
+        return LinkMapper.toLinkListDto(linkDtos, linkCount);
     }
 
     @Transactional
