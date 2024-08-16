@@ -36,9 +36,17 @@ public class LinkController {
 
     @GetMapping("/search")
     @Operation(summary = "링크 검색 API", description = "링크 검색 API입니다.")
+    @Parameters({
+            @Parameter(name = "query", description = "검색어"),
+            @Parameter(name = "page", description = "페이지 번호, ❗❗ 첫 페이지는 0번 입니다 ❗❗"),
+            @Parameter(name = "size", description = "페이징 사이즈")
+    })
     public ApiResponseDto<LinkResponse.LinkListDto> searchLinks(@AuthUser User user,
-                                                                  @ByteSize(max = 300, message = "검색어는 최대 300바이트까지만 허용됩니다.") @RequestParam(name="query") String query) {
-        return ApiResponseDto.of(linkService.searchLinks(query, user));
+                                                                @ByteSize(max = 300, message = "검색어는 최대 300바이트까지만 허용됩니다.") @RequestParam(name="query") String query,
+                                                                @RequestParam(defaultValue = "0", name = "page") int page,
+                                                                @RequestParam(defaultValue = "10", name = "size") int size) {
+
+        return ApiResponseDto.of(linkService.searchLinks(query, user, page, size));
     }
 
 

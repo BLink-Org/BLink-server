@@ -39,6 +39,6 @@ public interface LinkRepository extends JpaRepository<Link, Long> {
 
     @Query("SELECT l FROM Link l WHERE l.user = :user AND l.isTrash = false " +
             "AND (l.title LIKE %:query% OR l.contents LIKE %:query% OR l.url LIKE %:query% OR l.type LIKE %:query%)")
-    List<Link> searchLinksByUserAndQuery(@Param("user") User user, @Param("query") String query);
+    Page<Link> searchLinksByUserAndQuery(@Param("user") User user, @Param("query") String query, Pageable pageable);
 
 }
