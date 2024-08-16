@@ -141,6 +141,9 @@ public class LinkService {
         try {
             OpenGraph openGraph = new OpenGraph(url, true);
 
+            if (openGraph.getProperties().length==0)
+                return fetchLinkInfoWithJsoup(url);
+
             String title = getOpenGraphContent(openGraph, "title");
             String type = getOpenGraphContent(openGraph, "site_name");
             String contents = getOpenGraphContent(openGraph, "description");
@@ -156,9 +159,7 @@ public class LinkService {
 
     private LinkResponse.LinkInfo fetchYoutubeLinkInfo(String url) {
         try {
-            Document doc = Jsoup.connect(url)
-                    .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36")
-                    .get();
+            Document doc = Jsoup.connect(url).get();
 
             String title = doc.select("meta[property=og:title]").attr("content");
             if (title.isEmpty()) {
@@ -183,6 +184,7 @@ public class LinkService {
 
             return LinkMapper.toLinkInfo(title, type, contents, imageUrl);
         } catch (Exception e) {
+            e.printStackTrace();
             throw new LinkException(ErrorCode.LINK_SCRAPED_FAILED);
         }
     }
