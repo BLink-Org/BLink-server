@@ -67,7 +67,7 @@ public class LinkService {
         String domain = extractDomain(createDto.getUrl());
 
         LinkResponse.LinkInfo linkInfo = switch (domain) {
-            case "youtu.be", "youtube.com" -> fetchYoutubeLinkInfo(createDto.getUrl());
+            //case "youtu.be", "youtube.com" -> fetchYoutubeLinkInfo(createDto.getUrl());
             case "instagram.com" -> fetchInstagramLinkInfo(createDto.getUrl());
             case "blog.naver.com" -> fetchNaverBlogLinkInfo(createDto.getUrl());
             case "cafe.naver.com" -> fetchNaverCafeLinkInfo(createDto.getUrl());
