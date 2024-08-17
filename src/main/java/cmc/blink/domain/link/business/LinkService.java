@@ -374,6 +374,8 @@ public class LinkService {
             throw new LinkException(ErrorCode.LINK_ACCESS_DENIED);
 
         linkCommandAdapter.updateLastViewedAt(link);
+        if (link.isExcluded())
+            linkCommandAdapter.updateExcluded(link);
     }
 
     @Transactional
@@ -384,7 +386,10 @@ public class LinkService {
         if (link.getUser() != user)
             throw new LinkException(ErrorCode.LINK_ACCESS_DENIED);
 
-        linkCommandAdapter.updateExcluded(link);
+        if (!link.isExcluded())
+            linkCommandAdapter.updateExcluded(link);
+        else
+            throw new LinkException(ErrorCode.LINK_EXCLUDE_DENIED);
     }
 
     @Transactional

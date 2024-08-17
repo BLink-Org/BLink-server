@@ -97,8 +97,7 @@ public class Link extends BaseTimeEntity {
 
 
     public void updateExcluded() {
-        if (!this.isExcluded())
-            this.isExcluded = true;
+        this.isExcluded = !this.isExcluded();
     }
 
     public void validateAndSetFields(String title, String contents, String imageUrl) {

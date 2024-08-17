@@ -148,7 +148,8 @@ public class LinkController {
     })
     @ApiResponses({
             @ApiResponse(responseCode = "Error Code: 2603", description = "<<BAD_REQUEST>> id로 링크를 찾을 수 없음.", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
-            @ApiResponse(responseCode = "Error Code: 2604", description = "<<FORBIDDEN>> 해당 링크의 소유자가 아님.", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class)))
+            @ApiResponse(responseCode = "Error Code: 2604", description = "<<FORBIDDEN>> 해당 링크의 소유자가 아님.", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
+            @ApiResponse(responseCode = "Error Code: 2606", description = "<<FORBIDDEN>> 이미 최근 확인한 링크 목록에서 삭제된 링크임.", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class)))
     })
     public ApiResponseDto<Void> updateExcluded(@AuthUser User user, @PathVariable(name = "linkId")Long linkId) {
         linkService.updateExcluded(user, linkId);
