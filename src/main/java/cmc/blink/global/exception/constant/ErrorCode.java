@@ -65,6 +65,7 @@ public enum ErrorCode {
     LINK_ACCESS_DENIED(HttpStatus.FORBIDDEN, 2604, "해당 링크에 대한 접근이 거부되었습니다."),
     LINK_DELETE_DENIED(HttpStatus.BAD_REQUEST, 2605, "휴지통에 있는 링크만 영구삭제 할 수 있습니다."),
     LINK_EXCLUDE_DENIED(HttpStatus.BAD_REQUEST, 2606, "이미 최근 확인한 링크 목록에서 삭제된 링크입니다."),
+    TRASH_LINK_URL(HttpStatus.BAD_REQUEST, 2607, "이미 휴지통에 존재 하는 링크 url입니다."),
 
 
     // Feign 에러

@@ -57,8 +57,13 @@ public class LinkService {
     @Transactional
     public LinkResponse.LinkCreateDto saveLink(LinkRequest.LinkCreateDto createDto, User user) throws Exception {
         // 입력받은 url이 사용자가 이미 저장했던 링크인지 검증
-        if (linkQueryAdapter.isLinkUrlDuplicate(createDto.getUrl(), user))
-            throw new LinkException(ErrorCode.DUPLICATE_LINK_URL);
+
+        if (linkQueryAdapter.isLinkUrlDuplicate(createDto.getUrl(), user)){
+            if (linkQueryAdapter.findByUserAndUrl(user, createDto.getUrl()).isTrash())
+                throw new LinkException(ErrorCode.TRASH_LINK_URL);
+            else
+                throw new LinkException(ErrorCode.DUPLICATE_LINK_URL);
+        }
 
         // 입력받은 url 유효성 체크
         if (!isValidUrl(createDto.getUrl()))
