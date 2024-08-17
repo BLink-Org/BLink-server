@@ -23,6 +23,8 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -34,6 +36,7 @@ import org.springframework.web.util.HtmlUtils;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.UnknownHostException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -54,47 +57,51 @@ public class LinkService {
             "Mozilla/5.0 (Macintosh; Intel Mac OS X 13_1) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.1 Safari/605.1.15"
     );
 
+    private static final Logger logger = LoggerFactory.getLogger(LinkService.class);
+
     @Transactional
     public LinkResponse.LinkCreateDto saveLink(LinkRequest.LinkCreateDto createDto, User user) throws Exception {
-        // 입력받은 url이 사용자가 이미 저장했던 링크인지 검증
+        try {
+            // 입력받은 url이 사용자가 이미 저장했던 링크인지 검증
+            if (linkQueryAdapter.isLinkUrlDuplicate(createDto.getUrl(), user)){
+                if (linkQueryAdapter.findByUserAndUrl(user, createDto.getUrl()).isTrash())
+                    throw new LinkException(ErrorCode.TRASH_LINK_URL);
+                else
+                    throw new LinkException(ErrorCode.DUPLICATE_LINK_URL);
+            }
 
-        if (linkQueryAdapter.isLinkUrlDuplicate(createDto.getUrl(), user)){
-            if (linkQueryAdapter.findByUserAndUrl(user, createDto.getUrl()).isTrash())
-                throw new LinkException(ErrorCode.TRASH_LINK_URL);
-            else
-                throw new LinkException(ErrorCode.DUPLICATE_LINK_URL);
-        }
+            // 입력받은 url 유효성 체크
+            if (!isValidUrl(createDto.getUrl()))
+                throw new LinkException(ErrorCode.INVALID_LINK_URL);
 
-        // 입력받은 url 유효성 체크
-        if (!isValidUrl(createDto.getUrl()))
+            String domain = extractDomain(createDto.getUrl());
+
+            LinkResponse.LinkInfo linkInfo = switch (domain) {
+                case "youtu.be", "youtube.com" -> fetchYoutubeLinkInfo(createDto.getUrl());
+                case "instagram.com" -> fetchInstagramLinkInfo(createDto.getUrl());
+                case "blog.naver.com" -> fetchNaverBlogLinkInfo(createDto.getUrl());
+                case "cafe.naver.com" -> fetchNaverCafeLinkInfo(createDto.getUrl());
+                case "x.com" -> fetchTwitterLinkInfo(createDto.getUrl());
+                default -> fetchLinkInfo(createDto.getUrl());
+            };
+
+            // 링크 레코드 생성
+            Link link = LinkMapper.toLink(createDto.getUrl(), user, linkInfo);
+            link.validateAndSetFields(link.getTitle(), link.getContents(), link.getImageUrl());
+
+            linkCommandAdapter.create(link);
+
+            List<Folder> folders = createDto.getFolderIdList().stream()
+                    .map(folderQueryAdapter::findById).toList();
+
+            folders.stream()
+                    .map(folderCommandAdapter::updateLastLinkedAt)
+                    .forEach(folder -> linkFolderCommandAdapter.create(LinkFolderMapper.toLinkFolder(link, folder)));
+
+            return LinkMapper.toLinkCreateDto(link);
+        } catch (UnknownHostException e){
             throw new LinkException(ErrorCode.INVALID_LINK_URL);
-
-        String domain = extractDomain(createDto.getUrl());
-
-        LinkResponse.LinkInfo linkInfo = switch (domain) {
-            case "youtu.be", "youtube.com" -> fetchYoutubeLinkInfo(createDto.getUrl());
-            case "instagram.com" -> fetchInstagramLinkInfo(createDto.getUrl());
-            case "blog.naver.com" -> fetchNaverBlogLinkInfo(createDto.getUrl());
-            case "cafe.naver.com" -> fetchNaverCafeLinkInfo(createDto.getUrl());
-            case "x.com" -> fetchTwitterLinkInfo(createDto.getUrl());
-            default -> fetchLinkInfo(createDto.getUrl());
-        };
-
-        // 링크 레코드 생성
-
-        Link link = LinkMapper.toLink(createDto.getUrl(), user, linkInfo);
-        link.validateAndSetFields(link.getTitle(), link.getContents(), link.getImageUrl());
-
-        linkCommandAdapter.create(link);
-
-        List<Folder> folders = createDto.getFolderIdList().stream()
-                .map(folderQueryAdapter::findById).toList();
-
-        folders.stream()
-                .map(folderCommandAdapter::updateLastLinkedAt)
-                .forEach(folder -> linkFolderCommandAdapter.create(LinkFolderMapper.toLinkFolder(link, folder)));
-
-        return LinkMapper.toLinkCreateDto(link);
+        }
     }
 
     public void saveDefaultLink(User user, String language) {
@@ -155,7 +162,7 @@ public class LinkService {
         return USER_AGENT_LIST.get(random.nextInt(USER_AGENT_LIST.size()));
     }
 
-    private LinkResponse.LinkInfo fetchLinkInfo(String url) throws IOException {
+    private LinkResponse.LinkInfo fetchLinkInfo(String url) throws Exception {
         try {
             OpenGraph openGraph = new OpenGraph(url, true);
 
@@ -168,10 +175,8 @@ public class LinkService {
             String imageUrl = getOpenGraphContent(openGraph, "image");
 
             return LinkMapper.toLinkInfo(title, type, contents, imageUrl);
-        } catch (IOException e) {
-            throw new LinkException(ErrorCode.LINK_SCRAPED_FAILED);
-        } catch (Exception e) {
-            return fetchLinkInfoWithJsoup(url);
+        } catch (UnknownHostException e) {
+            throw new LinkException(ErrorCode.INVALID_LINK_URL);
         }
     }
 
@@ -184,9 +189,6 @@ public class LinkService {
                     .ignoreContentType(true)
                     .get();
 
-            System.out.println("userAgent = " + userAgent);
-            System.out.println("doc.toString() = " + doc.toString());
-
             String title = doc.select("meta[property=og:title]").attr("content");
             if (title.isEmpty()) {
                 title = doc.title();
@@ -194,7 +196,7 @@ public class LinkService {
 
             String type = "YouTube";
 
-            String channelTitle = doc.select("meta[itemprop='au thor']").attr("content");
+            String channelTitle = doc.select("meta[itemprop='author']").attr("content");
             if (channelTitle.isEmpty()) {
                 channelTitle = doc.select("link[itemprop='name']").attr("content");
             }
@@ -211,7 +213,8 @@ public class LinkService {
             return LinkMapper.toLinkInfo(title, type, contents, imageUrl);
         } catch (Exception e) {
             e.printStackTrace();
-            throw new LinkException(ErrorCode.LINK_SCRAPED_FAILED);
+            return null;
+//            throw new LinkException(ErrorCode.LINK_SCRAPED_FAILED);
         }
     }
 
@@ -344,7 +347,8 @@ public class LinkService {
     }
 
     private LinkResponse.LinkInfo fetchLinkInfoWithJsoup(String url) throws IOException {
-        Document doc = Jsoup.connect(url).get();
+        Document doc = Jsoup.connect(url).userAgent(getRandomUserAgent())
+                .get();
 
         String title = doc.title();
         String type = doc.select("meta[name=type]").attr("content");
