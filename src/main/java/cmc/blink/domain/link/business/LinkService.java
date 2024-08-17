@@ -57,8 +57,13 @@ public class LinkService {
     @Transactional
     public LinkResponse.LinkCreateDto saveLink(LinkRequest.LinkCreateDto createDto, User user) throws Exception {
         // 입력받은 url이 사용자가 이미 저장했던 링크인지 검증
-        if (linkQueryAdapter.isLinkUrlDuplicate(createDto.getUrl(), user))
-            throw new LinkException(ErrorCode.DUPLICATE_LINK_URL);
+
+        if (linkQueryAdapter.isLinkUrlDuplicate(createDto.getUrl(), user)){
+            if (linkQueryAdapter.findByUserAndUrl(user, createDto.getUrl()).isTrash())
+                throw new LinkException(ErrorCode.TRASH_LINK_URL);
+            else
+                throw new LinkException(ErrorCode.DUPLICATE_LINK_URL);
+        }
 
         // 입력받은 url 유효성 체크
         if (!isValidUrl(createDto.getUrl()))
@@ -67,7 +72,7 @@ public class LinkService {
         String domain = extractDomain(createDto.getUrl());
 
         LinkResponse.LinkInfo linkInfo = switch (domain) {
-            //case "youtu.be", "youtube.com" -> fetchYoutubeLinkInfo(createDto.getUrl());
+            case "youtu.be", "youtube.com" -> fetchYoutubeLinkInfo(createDto.getUrl());
             case "instagram.com" -> fetchInstagramLinkInfo(createDto.getUrl());
             case "blog.naver.com" -> fetchNaverBlogLinkInfo(createDto.getUrl());
             case "cafe.naver.com" -> fetchNaverCafeLinkInfo(createDto.getUrl());
@@ -174,8 +179,13 @@ public class LinkService {
         try {
             String userAgent = getRandomUserAgent();
             Document doc = Jsoup.connect(url)
+                    .header("Content-Type", "application/json;charset=UTF-8")
                     .userAgent(userAgent)
+                    .ignoreContentType(true)
                     .get();
+
+            System.out.println("userAgent = " + userAgent);
+            System.out.println("doc.toString() = " + doc.toString());
 
             String title = doc.select("meta[property=og:title]").attr("content");
             if (title.isEmpty()) {
@@ -374,6 +384,8 @@ public class LinkService {
             throw new LinkException(ErrorCode.LINK_ACCESS_DENIED);
 
         linkCommandAdapter.updateLastViewedAt(link);
+        if (link.isExcluded())
+            linkCommandAdapter.updateExcluded(link);
     }
 
     @Transactional
@@ -384,7 +396,10 @@ public class LinkService {
         if (link.getUser() != user)
             throw new LinkException(ErrorCode.LINK_ACCESS_DENIED);
 
-        linkCommandAdapter.updateExcluded(link);
+        if (!link.isExcluded())
+            linkCommandAdapter.updateExcluded(link);
+        else
+            throw new LinkException(ErrorCode.LINK_EXCLUDE_DENIED);
     }
 
     @Transactional
