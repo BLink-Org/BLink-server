@@ -34,6 +34,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.util.HtmlUtils;
 
 import java.io.IOException;
+import java.net.ProtocolException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.UnknownHostException;
@@ -177,6 +178,8 @@ public class LinkService {
             return LinkMapper.toLinkInfo(title, type, contents, imageUrl);
         } catch (UnknownHostException e) {
             throw new LinkException(ErrorCode.INVALID_LINK_URL);
+        } catch (ProtocolException e) {
+            return fetchLinkInfoWithJsoup(url);
         }
     }
 
@@ -187,6 +190,7 @@ public class LinkService {
                     .header("Content-Type", "application/json;charset=UTF-8")
                     .userAgent(userAgent)
                     .ignoreContentType(true)
+                    .followRedirects(false)
                     .get();
 
             String title = doc.select("meta[property=og:title]").attr("content");
@@ -347,7 +351,9 @@ public class LinkService {
     }
 
     private LinkResponse.LinkInfo fetchLinkInfoWithJsoup(String url) throws IOException {
-        Document doc = Jsoup.connect(url).userAgent(getRandomUserAgent())
+        Document doc = Jsoup.connect(url)
+                .userAgent(getRandomUserAgent())
+                .followRedirects(false)
                 .get();
 
         String title = doc.title();
