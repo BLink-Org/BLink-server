@@ -19,7 +19,9 @@ import cmc.blink.global.exception.LinkException;
 import cmc.blink.global.exception.constant.ErrorCode;
 import cmc.blink.global.util.opengraph.OpenGraph;
 import lombok.RequiredArgsConstructor;
+import org.jsoup.Connection;
 import org.jsoup.Jsoup;
+import org.jsoup.UnsupportedMimeTypeException;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
@@ -38,6 +40,7 @@ import java.net.ProtocolException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.UnknownHostException;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -78,7 +81,7 @@ public class LinkService {
             String domain = extractDomain(createDto.getUrl());
 
             LinkResponse.LinkInfo linkInfo = switch (domain) {
-                case "youtu.be", "youtube.com" -> fetchYoutubeLinkInfo(createDto.getUrl());
+                //case "youtu.be", "youtube.com" -> fetchYoutubeLinkInfo(createDto.getUrl());
                 case "instagram.com" -> fetchInstagramLinkInfo(createDto.getUrl());
                 case "blog.naver.com" -> fetchNaverBlogLinkInfo(createDto.getUrl());
                 case "cafe.naver.com" -> fetchNaverCafeLinkInfo(createDto.getUrl());
@@ -351,17 +354,41 @@ public class LinkService {
     }
 
     private LinkResponse.LinkInfo fetchLinkInfoWithJsoup(String url) throws IOException {
-        Document doc = Jsoup.connect(url)
-                .userAgent(getRandomUserAgent())
-                .followRedirects(false)
-                .get();
+        try {
+            Document doc = Jsoup.connect(url)
+                    .userAgent(getRandomUserAgent())
+                    .followRedirects(false)
+                    .get();
 
-        String title = doc.title();
-        String type = doc.select("meta[name=type]").attr("content");
-        String contents = doc.select("meta[name=description]").attr("content");
-        String imageUrl = doc.select("meta[property=og:image]").attr("content");
+            String title = doc.title();
+            String type = doc.select("meta[name=type]").attr("content");
+            String contents = doc.select("meta[name=description]").attr("content");
+            String imageUrl = doc.select("meta[property=og:image]").attr("content");
 
-        return LinkMapper.toLinkInfo(title, type, contents, imageUrl);
+            return LinkMapper.toLinkInfo(title, type, contents, imageUrl);
+        } catch (UnsupportedMimeTypeException e) {
+            return fetchLinkInfoWithBinary(url);
+        }
+
+    }
+
+    private LinkResponse.LinkInfo fetchLinkInfoWithBinary(String url) throws IOException {
+        try {
+            Connection.Response response = Jsoup.connect(url)
+                    .ignoreContentType(true)
+                    .execute();
+
+            String htmlContent = new String(response.bodyAsBytes(), StandardCharsets.UTF_8);
+            Document doc = Jsoup.parse(htmlContent);
+
+            String title = doc.title();
+            String contents = doc.select("meta[name=description]").attr("content");
+            String imageUrl = doc.select("meta[property=og:image]").attr("content");
+
+            return LinkMapper.toLinkInfo(title, "", contents, imageUrl);
+        } catch (IOException e) {
+            throw new LinkException(ErrorCode.LINK_SCRAPED_FAILED);
+        }
     }
 
     @Transactional
