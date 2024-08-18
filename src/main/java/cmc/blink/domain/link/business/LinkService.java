@@ -81,7 +81,7 @@ public class LinkService {
             String domain = extractDomain(createDto.getUrl());
 
             LinkResponse.LinkInfo linkInfo = switch (domain) {
-                //case "youtu.be", "youtube.com" -> fetchYoutubeLinkInfo(createDto.getUrl());
+                case "youtu.be", "youtube.com" -> fetchYoutubeLinkInfo(createDto.getUrl());
                 case "instagram.com" -> fetchInstagramLinkInfo(createDto.getUrl());
                 case "blog.naver.com" -> fetchNaverBlogLinkInfo(createDto.getUrl());
                 case "cafe.naver.com" -> fetchNaverCafeLinkInfo(createDto.getUrl());
@@ -189,12 +189,17 @@ public class LinkService {
     private LinkResponse.LinkInfo fetchYoutubeLinkInfo(String url) {
         try {
             String userAgent = getRandomUserAgent();
+
+            System.out.println("\n\nuserAgent = " + userAgent);
+
             Document doc = Jsoup.connect(url)
                     .header("Content-Type", "application/json;charset=UTF-8")
                     .userAgent(userAgent)
                     .ignoreContentType(true)
                     .followRedirects(false)
                     .get();
+
+            System.out.println("\n\n\n\n\ndoc = " + doc);
 
             String title = doc.select("meta[property=og:title]").attr("content");
             if (title.isEmpty()) {
