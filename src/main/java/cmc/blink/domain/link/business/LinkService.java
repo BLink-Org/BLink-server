@@ -190,13 +190,19 @@ public class LinkService {
         try {
             String userAgent = getRandomUserAgent();
 
-            System.out.println("\n\nuserAgent = " + userAgent);
+            int timeout = new Random().nextInt(2000) + 1000;
 
             Document doc = Jsoup.connect(url)
-                    .header("Content-Type", "application/json;charset=UTF-8")
-                    .userAgent(userAgent)
+                    .header("authority", "www.youtube.com")
+                    .header("method", "GET")
+                    .header("path", "/?app=desktop&hl=ko&gl=KR")
+                    .header("scheme", "https")
+                    .header("accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7")
+//                    .header("accept-encoding", "gzip, deflate, br, zstd")
+                    .header("accept-language", "ko,en-US;q=0.9,en;q=0.8")
+                    .header("user-agent", userAgent)
+                    .timeout(new Random().nextInt(2000) + 1000)
                     .ignoreContentType(true)
-                    .followRedirects(false)
                     .get();
 
             System.out.println("\n\n\n\n\ndoc = " + doc);
