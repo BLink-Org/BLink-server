@@ -17,7 +17,7 @@ spring:
 
 jwt:
   secret-key: ${SECRET_KEY}
-  token-valid-time: 259200
+  token-valid-time: 90
   refresh-valid-time: 1209600
 
 server:
