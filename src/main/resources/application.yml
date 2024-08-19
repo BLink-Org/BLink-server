@@ -18,7 +18,7 @@ spring:
 jwt:
   secret-key: ${SECRET_KEY}
   token-valid-time: 90
-  refresh-valid-time: 1209600
+  refresh-valid-time: 180
 
 server:
   max-http-request-header-size: 400000
