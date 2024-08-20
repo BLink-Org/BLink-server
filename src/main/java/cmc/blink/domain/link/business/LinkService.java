@@ -634,7 +634,7 @@ public class LinkService {
                     if (folderNames != null && !folderNames.isEmpty()) {
                         folderName = folderNames.get(0);
                         if (folderNames.size() > 1) {
-                            folderName += " 외";
+                            folderName += ", ...";
                         }
                     }
 
