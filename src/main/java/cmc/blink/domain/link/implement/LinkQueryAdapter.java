@@ -88,4 +88,8 @@ public class LinkQueryAdapter {
     public List<Link> findLinksInTrashBefore(LocalDateTime sevenDaysAgo) {
         return linkRepository.findLinksInTrashBefore(sevenDaysAgo);
     }
+
+    public List<Link> findAllByUser(User user) {
+        return linkRepository.findAllByUser(user);
+    }
 }

@@ -47,4 +47,5 @@ public interface LinkRepository extends JpaRepository<Link, Long> {
     @Query("SELECT l FROM Link l WHERE l.isTrash = true AND l.trashMovedDate <= :sevenDaysAgo")
     List<Link> findLinksInTrashBefore(@Param("sevenDaysAgo") LocalDateTime sevenDaysAgo);
 
+    List<Link> findAllByUser(User user);
 }

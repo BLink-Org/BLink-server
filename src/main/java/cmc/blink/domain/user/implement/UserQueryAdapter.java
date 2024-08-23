@@ -5,6 +5,9 @@ import cmc.blink.domain.user.persistence.User;
 import cmc.blink.domain.user.persistence.UserRepository;
 import lombok.RequiredArgsConstructor;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 @Adapter
@@ -15,5 +18,9 @@ public class UserQueryAdapter {
 
     public Optional<User> findByEmail(String email) {
         return userRepository.findByEmail(email);
+    }
+
+    public List<User> findUsersDeleteRequestBefore(LocalDate sevenDaysAgo) {
+        return userRepository.findUsersDeleteRequestBefore(sevenDaysAgo);
     }
 }

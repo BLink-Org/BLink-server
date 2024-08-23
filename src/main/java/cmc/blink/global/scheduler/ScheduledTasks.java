@@ -20,4 +20,10 @@ public class ScheduledTasks {
         linkService.deleteExpiredLinks();
     }
 
+    @Scheduled(cron = "0 0 0 * * *")
+    @Transactional
+    public void deleteExpiredAccounts() {
+        userService.deleteExpiredAccounts();
+    }
+
 }

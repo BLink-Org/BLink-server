@@ -15,4 +15,6 @@ public interface FolderRepository extends JpaRepository<Folder, Long> {
 
     @Query("SELECT f FROM Folder f WHERE f.user = :user ORDER BY f.lastLinkedAt DESC")
     List<Folder> findTop1ByUserOrderByLastLinkedAtDesc(@Param("user") User user);
+
+    List<Folder> findAllByUser(User user);
 }

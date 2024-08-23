@@ -41,4 +41,8 @@ public class FolderQueryAdapter {
         List<Folder> recentFolders = folderRepository.findTop1ByUserOrderByLastLinkedAtDesc(user);
         return recentFolders.isEmpty() ? null : recentFolders.get(0);
     }
+
+    public List<Folder> findAllByUser(User user) {
+        return folderRepository.findAllByUser(user);
+    }
 }
