@@ -4,8 +4,6 @@ spring:
   application:
     name: blink
   profiles:
-    include:
-      - oauth
     active: dev
   data:
     redis:
