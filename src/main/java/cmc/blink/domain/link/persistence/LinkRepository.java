@@ -44,4 +44,7 @@ public interface LinkRepository extends JpaRepository<Link, Long> {
             "AND (l.title LIKE %:query% OR l.contents LIKE %:query% OR l.url LIKE %:query% OR l.type LIKE %:query%)")
     Page<Link> searchLinksByUserAndQuery(@Param("user") User user, @Param("query") String query, Pageable pageable);
 
+    @Query("SELECT l FROM Link l WHERE l.isTrash = true AND l.trashMovedDate <= :sevenDaysAgo")
+    List<Link> findLinksInTrashBefore(@Param("sevenDaysAgo") LocalDateTime sevenDaysAgo);
+
 }

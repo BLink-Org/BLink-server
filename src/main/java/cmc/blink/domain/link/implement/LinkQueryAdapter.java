@@ -84,4 +84,8 @@ public class LinkQueryAdapter {
     public Page<Link> searchLinksByUserAndQuery(User user, String query, Pageable pageable) {
         return linkRepository.searchLinksByUserAndQuery(user, query, pageable);
     }
+
+    public List<Link> findLinksInTrashBefore(LocalDateTime sevenDaysAgo) {
+        return linkRepository.findLinksInTrashBefore(sevenDaysAgo);
+    }
 }

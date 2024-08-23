@@ -41,6 +41,8 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -505,6 +507,18 @@ public class LinkService {
         linkFolders.forEach(linkFolderCommandAdapter::delete);
 
         linkCommandAdapter.delete(link);
+    }
+
+    @Transactional
+    public void deleteExpiredLinks() {
+        LocalDateTime sevenDaysAgo = LocalDateTime.now().minusDays(7);
+        List<Link> expiredLinks = linkQueryAdapter.findLinksInTrashBefore(sevenDaysAgo);
+
+        for (Link link : expiredLinks) {
+            List<LinkFolder> linkFolders = linkFolderQueryAdapter.findAllByLink(link);
+            linkFolders.forEach(linkFolderCommandAdapter::delete);
+            linkCommandAdapter.delete(link);
+        }
     }
 
     @Transactional
