@@ -566,7 +566,7 @@ public class LinkService {
         Page<Link> linksPage = linkQueryAdapter.findByIdsAndUserAndIsTrashFalse(linkIds, user, pageable);
 
         List<Link> links = linksPage.getContent();
-        int linkCount = linkFolders.size();
+        int linkCount = (int)linksPage.getTotalElements();
 
         List<LinkResponse.LinkDto> linkDtos = links.stream()
                 .map(link -> LinkMapper.toLinkDto(link, folder.getTitle()))
