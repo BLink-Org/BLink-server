@@ -17,3 +17,8 @@ spring:
   docker:
     compose:
       enabled: true
+
+sentry:
+  dsn:
+  enable-tracing: false
+  environment: local

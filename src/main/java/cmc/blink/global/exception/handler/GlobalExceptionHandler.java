@@ -1,6 +1,7 @@
 package cmc.blink.global.exception.handler;
 
 import cmc.blink.global.exception.dto.ApiErrorResponse;
+import io.sentry.Sentry;
 import cmc.blink.global.exception.GeneralException;
 import cmc.blink.global.exception.JwtAuthenticationException;
 import cmc.blink.global.exception.constant.ErrorCode;
@@ -21,27 +22,32 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     @Override
     protected ResponseEntity<Object> handleMethodArgumentNotValid(
             MethodArgumentNotValidException ex, HttpHeaders headers, HttpStatusCode status, WebRequest request) {
+        Sentry.captureException(ex);
         return handleExceptionInternalFalse(ex, ErrorCode.INVALID_DATA, headers, status, request);
     }
 
     @org.springframework.web.bind.annotation.ExceptionHandler
     public ResponseEntity<Object> handleConstraintViolationException(ConstraintViolationException e, WebRequest request) {
+        Sentry.captureException(e);
         return handleExceptionInternal(e, ErrorCode.UNAUTHORIZED, request);
     }
 
     @org.springframework.web.bind.annotation.ExceptionHandler
     public ResponseEntity<Object> handleGeneralException(GeneralException e, WebRequest request) {
+        Sentry.captureException(e);
         return handleExceptionInternal(e, e.getErrorCode(), request);
     }
 
     @org.springframework.web.bind.annotation.ExceptionHandler
     public ResponseEntity<Object> exception (Exception e, WebRequest request) {
         e.printStackTrace();
+        Sentry.captureException(e);
         return handleExceptionInternalFalse(e, ErrorCode.INTERNAL_ERROR, HttpHeaders.EMPTY, ErrorCode.INTERNAL_ERROR.getHttpStatus(), request);
     }
 
     @org.springframework.web.bind.annotation.ExceptionHandler(JwtAuthenticationException.class)
     public ResponseEntity<Object> handleJwtAuthenticationException(JwtAuthenticationException e, WebRequest request) {
+        Sentry.captureException(e);
         return handleExceptionInternal(e, ErrorCode.UNAUTHORIZED, request);
     }
 
