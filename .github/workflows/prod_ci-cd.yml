@@ -1,7 +1,7 @@
 name: B.Link Prod CI/CD
 
 on:
-  pull_request:
+  push:
     branches:
       - main
     types: [closed]

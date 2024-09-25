@@ -1,7 +1,7 @@
 name: B.Link Dev CI/CD
 
 on:
-  pull_request:
+  push:
     branches:
       - dev
     types: [closed]
