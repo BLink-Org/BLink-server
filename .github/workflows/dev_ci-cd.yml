@@ -38,6 +38,9 @@ jobs:
         run: echo "CurrentTime=${{ steps.current-time.outputs.formattedTime }}"
         shell: bash
 
+      - name: Check Profile
+        run: echo "SPRING_PROFILES_ACTIVE=${{ env.SPRING_PROFILES_ACTIVE }}"
+
       - name: Generate deployment package
         run: |
           mkdir -p deploy
