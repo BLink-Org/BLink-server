@@ -21,6 +21,12 @@ public class UserCommandAdapter {
         return userRepository.save(user);
     }
 
+    public void updateLastLoginTime(User user) {
+        user.updateLoginTime();
+
+        userRepository.save(user);
+    }
+
     public void delete(User user) {
         userRepository.delete(user);
     }
