@@ -249,6 +249,10 @@ public class LinkService {
                 return url.substring(url.lastIndexOf("/") + 1).split("\\?")[0];
             }
 
+            if (url.contains("youtube.com/shorts/")) {
+                return url.substring(url.indexOf("/shorts/") + 8).split("\\?")[0];
+            }
+
             URL videoUrl = new URL(url);
             String query = videoUrl.getQuery();
 
