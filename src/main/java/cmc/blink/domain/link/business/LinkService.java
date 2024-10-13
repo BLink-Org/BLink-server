@@ -58,6 +58,7 @@ public class LinkService {
     private final FolderCommandAdapter folderCommandAdapter;
     private final LinkFolderQueryAdapter linkFolderQueryAdapter;
     private final LinkFolderCommandAdapter linkFolderCommandAdapter;
+    private final LinkScrapper linkScrapper;
 
     @Value("${gcp.api-key}")
     private String apiKey;
@@ -69,36 +70,35 @@ public class LinkService {
     );
 
     private static final Logger logger = LoggerFactory.getLogger(LinkService.class);
-    private com.google.api.client.json.JsonFactory JsonFactory;
 
     @Transactional
     public LinkResponse.LinkCreateDto saveLink(LinkRequest.LinkCreateDto createDto, User user) throws Exception {
+        String url = createDto.getUrl().trim().replaceAll("\\s+", "");
+
         try {
-            // 입력받은 url이 사용자가 이미 저장했던 링크인지 검증
-            if (linkQueryAdapter.isLinkUrlDuplicate(createDto.getUrl(), user)){
-                if (linkQueryAdapter.findByUserAndUrl(user, createDto.getUrl()).isTrash())
+            if (linkQueryAdapter.isLinkUrlDuplicate(url, user)){
+                if (linkQueryAdapter.findByUserAndUrl(user, url).isTrash())
                     throw new LinkException(ErrorCode.TRASH_LINK_URL);
                 else
                     throw new LinkException(ErrorCode.DUPLICATE_LINK_URL);
             }
 
             // 입력받은 url 유효성 체크
-            if (!isValidUrl(createDto.getUrl()))
+            if (!isValidUrl(url))
                 throw new LinkException(ErrorCode.INVALID_LINK_URL);
 
-            String domain = extractDomain(createDto.getUrl());
+            String domain = extractDomain(url);
 
             LinkResponse.LinkInfo linkInfo = switch (domain) {
-                case "youtu.be", "youtube.com" -> fetchYoutubeLinkInfo(createDto.getUrl());
-                case "instagram.com" -> fetchInstagramLinkInfo(createDto.getUrl());
-                case "blog.naver.com" -> fetchNaverBlogLinkInfo(createDto.getUrl());
-                case "cafe.naver.com" -> fetchNaverCafeLinkInfo(createDto.getUrl());
-                case "x.com" -> fetchTwitterLinkInfo(createDto.getUrl());
-                default -> fetchLinkInfo(createDto.getUrl());
+                case "youtu.be", "youtube.com" -> fetchYoutubeLinkInfo(url);
+                case "instagram.com" -> fetchInstagramLinkInfo(url);
+                case "blog.naver.com" -> fetchNaverBlogLinkInfo(url);
+                case "cafe.naver.com" -> fetchNaverCafeLinkInfo(url);
+                case "x.com" -> fetchTwitterLinkInfo(url);
+                default -> fetchLinkInfo(url);
             };
 
-            // 링크 레코드 생성
-            Link link = LinkMapper.toLink(createDto.getUrl(), user, linkInfo);
+            Link link = LinkMapper.toLink(url, user, linkInfo);
             link.validateAndSetFields(link.getTitle(), link.getContents(), link.getImageUrl());
 
             linkCommandAdapter.create(link);
