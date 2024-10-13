@@ -18,6 +18,11 @@ import cmc.blink.global.exception.FolderException;
 import cmc.blink.global.exception.LinkException;
 import cmc.blink.global.exception.constant.ErrorCode;
 import cmc.blink.global.util.opengraph.OpenGraph;
+import com.google.api.client.json.gson.GsonFactory;
+import com.google.api.services.youtube.YouTube;
+import com.google.api.services.youtube.YouTubeRequestInitializer;
+import com.google.api.services.youtube.model.Video;
+import com.google.api.services.youtube.model.VideoListResponse;
 import lombok.RequiredArgsConstructor;
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
@@ -27,6 +32,7 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -36,12 +42,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.util.HtmlUtils;
 
 import java.io.IOException;
-import java.net.ProtocolException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.UnknownHostException;
+import java.net.*;
 import java.nio.charset.StandardCharsets;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -57,6 +59,9 @@ public class LinkService {
     private final LinkFolderQueryAdapter linkFolderQueryAdapter;
     private final LinkFolderCommandAdapter linkFolderCommandAdapter;
 
+    @Value("${gcp.api-key}")
+    private String apiKey;
+
     private static final List<String> USER_AGENT_LIST = Arrays.asList(
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36",
             "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36",
@@ -64,6 +69,7 @@ public class LinkService {
     );
 
     private static final Logger logger = LoggerFactory.getLogger(LinkService.class);
+    private com.google.api.client.json.JsonFactory JsonFactory;
 
     @Transactional
     public LinkResponse.LinkCreateDto saveLink(LinkRequest.LinkCreateDto createDto, User user) throws Exception {
@@ -190,47 +196,46 @@ public class LinkService {
 
     private LinkResponse.LinkInfo fetchYoutubeLinkInfo(String url) {
         try {
-            String userAgent = getRandomUserAgent();
+            // 유튜브 영상의 ID를 추출
+            String videoId = extractVideoId(url);
 
-            int timeout = new Random().nextInt(2000) + 1000;
+            // YouTube Data API 클라이언트 생성
+            YouTube youtube = new YouTube.Builder(
+                    new com.google.api.client.http.javanet.NetHttpTransport(),
+                    GsonFactory.getDefaultInstance(),
+                    null
+            ).setYouTubeRequestInitializer(new YouTubeRequestInitializer(apiKey))
+                    .setApplicationName("youtube-data-api-example")
+                    .build();
 
-            Document doc = Jsoup.connect(url)
-                    .header("authority", "www.youtube.com")
-                    .header("method", "GET")
-                    .header("path", "/?app=desktop&hl=ko&gl=KR")
-                    .header("scheme", "https")
-                    .header("accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7")
-//                    .header("accept-encoding", "gzip, deflate, br, zstd")
-                    .header("accept-language", "ko,en-US;q=0.9,en;q=0.8")
-                    .header("user-agent", userAgent)
-                    .timeout(new Random().nextInt(2000) + 1000)
-                    .ignoreContentType(true)
-                    .get();
+            // 동영상 정보 요청
+            YouTube.Videos.List videoRequest = youtube.videos()
+                    .list("snippet")
+                    .setId(videoId);
 
-            System.out.println("\n\n\n\n\ndoc = " + doc);
+            // API 응답
+            VideoListResponse response = videoRequest.execute();
+            List<Video> videoList = response.getItems();
 
-            String title = doc.select("meta[property=og:title]").attr("content");
-            if (title.isEmpty()) {
-                title = doc.title();
+            if (videoList.isEmpty()) {
+                throw new LinkException(ErrorCode.INVALID_LINK_URL);
             }
 
-            String type = "YouTube";
+            Video video = videoList.get(0);
 
-            String channelTitle = doc.select("meta[itemprop='author']").attr("content");
-            if (channelTitle.isEmpty()) {
-                channelTitle = doc.select("link[itemprop='name']").attr("content");
-            }
+            String title = video.getSnippet().getTitle();
 
-            String description = doc.select("meta[property=og:description]").attr("content");
-            if (description.isEmpty()) {
-                description = doc.select("meta[name=description]").attr("content");
-            }
+            String channelTitle = video.getSnippet().getChannelTitle();
+
+            String description = video.getSnippet().getDescription();
+
+            String thumbnailUrl = video.getSnippet().getThumbnails().getDefault().getUrl();
+
+            String type = "Youtube";
 
             String contents = String.format("%s | %s", channelTitle, description);
 
-            String imageUrl = doc.select("meta[property=og:image]").attr("content");
-
-            return LinkMapper.toLinkInfo(title, type, contents, imageUrl);
+            return LinkMapper.toLinkInfo(title, type, contents, thumbnailUrl);
         } catch (Exception e) {
             e.printStackTrace();
             return null;
@@ -238,6 +243,34 @@ public class LinkService {
         }
     }
 
+    private String extractVideoId(String url) throws LinkException {
+        try {
+            if (url.contains("youtu.be/")) {
+                return url.substring(url.lastIndexOf("/") + 1).split("\\?")[0];
+            }
+
+            URL videoUrl = new URL(url);
+            String query = videoUrl.getQuery();
+
+            if (query != null) {
+                String[] queryParams = query.split("&");
+                for (String param : queryParams) {
+                    if (param.startsWith("v=")) {
+                        return param.split("=")[1];
+                    }
+                }
+            }
+
+            String path = videoUrl.getPath();
+            if (path.contains("/embed/")) {
+                return path.substring(path.lastIndexOf("/embed/") + 7);
+            }
+
+        } catch (Exception e) {
+            throw new LinkException(ErrorCode.INVALID_LINK_URL);
+        }
+        throw new LinkException(ErrorCode.INVALID_LINK_URL);
+    }
 
     private LinkResponse.LinkInfo fetchInstagramLinkInfo(String url) {
         try {
