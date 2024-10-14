@@ -431,41 +431,18 @@ public class LinkService {
     }
 
     private LinkResponse.LinkInfo fetchLinkInfoWithJsoup(String url) throws IOException {
-        try {
-            Document doc = Jsoup.connect(url)
-                    .userAgent(getRandomUserAgent())
-                    .followRedirects(false)
-                    .get();
+        Document doc = Jsoup.connect(url)
+                .userAgent(getRandomUserAgent())
+                .ignoreContentType(true)
+                .followRedirects(false)
+                .get();
 
-            String title = doc.title();
-            String type = doc.select("meta[name=type]").attr("content");
-            String contents = doc.select("meta[name=description]").attr("content");
-            String imageUrl = doc.select("meta[property=og:image]").attr("content");
+        String title = doc.title();
+        String type = doc.select("meta[name=type]").attr("content");
+        String contents = doc.select("meta[name=description]").attr("content");
+        String imageUrl = doc.select("meta[property=og:image]").attr("content");
 
-            return LinkMapper.toLinkInfo(title, type, contents, imageUrl);
-        } catch (UnsupportedMimeTypeException e) {
-            return fetchLinkInfoWithBinary(url);
-        }
-
-    }
-
-    private LinkResponse.LinkInfo fetchLinkInfoWithBinary(String url) throws IOException {
-        try {
-            Connection.Response response = Jsoup.connect(url)
-                    .ignoreContentType(true)
-                    .execute();
-
-            String htmlContent = new String(response.bodyAsBytes(), StandardCharsets.UTF_8);
-            Document doc = Jsoup.parse(htmlContent);
-
-            String title = doc.title();
-            String contents = doc.select("meta[name=description]").attr("content");
-            String imageUrl = doc.select("meta[property=og:image]").attr("content");
-
-            return LinkMapper.toLinkInfo(title, "", contents, imageUrl);
-        } catch (IOException e) {
-            throw new LinkException(ErrorCode.LINK_SCRAPED_FAILED);
-        }
+        return LinkMapper.toLinkInfo(title, type, contents, imageUrl);
     }
 
     @Transactional
