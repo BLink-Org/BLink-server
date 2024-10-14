@@ -95,6 +95,7 @@ public class LinkService {
                 case "blog.naver.com" -> fetchNaverBlogLinkInfo(url);
                 case "cafe.naver.com" -> fetchNaverCafeLinkInfo(url);
                 case "x.com" -> fetchTwitterLinkInfo(url);
+                case "brunch.co.kr" -> fetchBrunchLinkInfo(url);
                 default -> fetchLinkInfo(url);
             };
 
@@ -392,6 +393,32 @@ public class LinkService {
             String imageUrl = doc.select("meta[property=og:image]").attr("content");
 
             return LinkMapper.toLinkInfo(title, type, contents, imageUrl);
+        } catch (IOException e) {
+            throw new LinkException(ErrorCode.LINK_SCRAPED_FAILED);
+        }
+    }
+
+    private LinkResponse.LinkInfo fetchBrunchLinkInfo(String url) {
+        try {
+            Document doc = Jsoup.connect(url).get();
+
+            System.out.printf("<<<<brunch link scrapping result HTML>>>>\n\n\n %s\n\n\n%n", doc);
+
+            String title = doc.select("meta[property=og:title]").attr("content");
+
+            if (title.isEmpty()) {
+                title = doc.title();
+            }
+
+            String contents = doc.select("meta[property=og:description]").attr("content");
+            if (contents.isEmpty()) {
+                contents = doc.select("meta[name=description]").attr("content");
+            }
+
+            String imageUrl = doc.select("meta[property=og:image]").attr("content");
+
+            return LinkMapper.toLinkInfo(title, "Brunch", contents, imageUrl);
+
         } catch (IOException e) {
             throw new LinkException(ErrorCode.LINK_SCRAPED_FAILED);
         }
