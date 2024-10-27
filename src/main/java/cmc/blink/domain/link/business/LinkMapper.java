@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
@@ -19,10 +20,10 @@ public class LinkMapper {
         return Link.builder()
                 .user(user)
                 .url(url)
-                .title(linkInfo.getTitle())
-                .type(linkInfo.getType())
-                .contents(linkInfo.getContents())
-                .imageUrl(linkInfo.getImageUrl())
+                .title(Optional.ofNullable(linkInfo.getTitle()).orElse(""))
+                .type(Optional.ofNullable(linkInfo.getType()).orElse(""))
+                .contents(Optional.ofNullable(linkInfo.getContents()).orElse(""))
+                .imageUrl(Optional.ofNullable(linkInfo.getImageUrl()).orElse(""))
                 .build();
     }
 
