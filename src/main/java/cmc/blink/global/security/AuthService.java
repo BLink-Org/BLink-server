@@ -77,8 +77,7 @@ public class AuthService {
 
         if(optionalUser.isEmpty()){
             user = UserMapper.toUser(userInfo, "google");
-            user.updateLoginTime();
-            userCommandAdapter.save(user);
+            userCommandAdapter.updateLastLoginTime(user);
 
             linkService.saveDefaultLink(user, language);
         }else{
@@ -112,8 +111,7 @@ public class AuthService {
 
         if(optionalUser.isEmpty()){
             user = UserMapper.toUser(requestDto, "apple");
-            user.updateLoginTime();
-            userCommandAdapter.save(user);
+            userCommandAdapter.updateLastLoginTime(user);
 
             linkService.saveDefaultLink(user, language);
         }else{

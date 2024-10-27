@@ -13,10 +13,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @Tag(name="유저", description = "마이페이지 관련 API 입니다.")
 @RestController
@@ -56,5 +53,14 @@ public class UserController {
         return ApiResponseDto.of("계정 삭제 신청 취소가 완료되었습니다.", null);
     }
 
+    @PatchMapping("/last-access")
+    @Operation(summary = "최근 접속 일시 업데이트 API", description = "사용자가 앱에 마지막으로 접속한 일시를 업데이트하는 API입니다.")
+    @ApiResponses({
+            @ApiResponse(description = "<<OK>> 접속 일시 업데이트 완료.", content = @Content(schema = @Schema(implementation = ApiResponseDto.class)))})
+    public ApiResponseDto<?> updateLastLoginTime(@AuthUser User user) {
+        userService.updateLastLoginTime(user);
+
+        return ApiResponseDto.of("최근 접속 일시 업데이트가 완료되었습니다.", null);
+    }
 
 }

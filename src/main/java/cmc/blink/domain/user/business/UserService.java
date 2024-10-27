@@ -93,4 +93,9 @@ public class UserService {
             userCommandAdapter.delete(user);
         }
     }
+
+    @Transactional
+    public void updateLastLoginTime(User user) {
+        userCommandAdapter.updateLastLoginTime(user);
+    }
 }

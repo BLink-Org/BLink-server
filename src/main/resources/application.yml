@@ -18,6 +18,9 @@ jwt:
   token-valid-time: 172800
   refresh-valid-time: 1209600
 
+gcp:
+  api-key: ${API_KEY}
+
 server:
   max-http-request-header-size: 400000
 
