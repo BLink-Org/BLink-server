@@ -51,12 +51,9 @@ public class LinkValidator {
     private void checkUrlAccessibility(String url) {
         try {
             HttpURLConnection connection = (HttpURLConnection) new URL(url).openConnection();
-            connection.setRequestMethod("HEAD");
+            connection.setRequestMethod("GET");
             int responseCode = connection.getResponseCode();
 
-            if (responseCode >= 400) {
-                throw new LinkException(ErrorCode.INVALID_LINK_URL);
-            }
         } catch (IOException e) {
             throw new LinkException(ErrorCode.INVALID_LINK_URL);
         }

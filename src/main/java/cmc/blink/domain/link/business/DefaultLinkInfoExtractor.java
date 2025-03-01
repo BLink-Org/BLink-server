@@ -47,6 +47,7 @@ public class DefaultLinkInfoExtractor implements LinkInfoExtractor {
             case "cafe.naver.com" -> fetchNaverCafeLinkInfo(url);
             case "x.com" -> fetchTwitterLinkInfo(url);
             case "brunch.co.kr" -> fetchBrunchLinkInfo(url);
+            case "reddit.com" -> fetchRedditLinkInfo(url);
             default -> fetchLinkInfo(url);
         };
     }
@@ -274,6 +275,29 @@ public class DefaultLinkInfoExtractor implements LinkInfoExtractor {
         }
     }
 
+    private LinkResponse.LinkInfo fetchRedditLinkInfo(String url) {
+        try {
+            Document doc = Jsoup.connect(url)
+                    .userAgent(getRandomUserAgent())
+                    .ignoreContentType(true)
+                    .get();
+
+            Element titleElement = doc.selectFirst("shreddit-title");
+            String fullTitle = titleElement != null ? titleElement.attr("title") : "Title not found";
+            String title = fullTitle.contains(":") ? fullTitle.split(":", 2)[0].trim() : fullTitle;
+
+            Element subredditElement = doc.selectFirst("shreddit-post");
+            String contents = subredditElement != null ? subredditElement.attr("subreddit-prefixed-name") : "Subreddit not found";
+
+            Element videoElement = doc.selectFirst("shreddit-post");
+            String imageUrl = videoElement != null ? videoElement.attr("content-href") : "";
+
+            return LinkMapper.toLinkInfo(title, "Reddit", contents, imageUrl);
+        } catch (Exception e) {
+            throw new LinkException(ErrorCode.LINK_SCRAPED_FAILED);
+        }
+    }
+
     private String getOpenGraphContent(OpenGraph openGraph, String property) {
         return Optional.ofNullable(openGraph.getContent(property))
                 .map(HtmlUtils::htmlUnescape)
@@ -305,7 +329,7 @@ public class DefaultLinkInfoExtractor implements LinkInfoExtractor {
         Document doc = Jsoup.connect(url)
                 .userAgent(getRandomUserAgent())
                 .ignoreContentType(true)
-                .followRedirects(false)
+                .followRedirects(true)
                 .get();
 
         String title = doc.title();
