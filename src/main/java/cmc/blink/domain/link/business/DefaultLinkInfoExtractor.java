@@ -9,6 +9,7 @@ import com.google.api.services.youtube.YouTube;
 import com.google.api.services.youtube.YouTubeRequestInitializer;
 import com.google.api.services.youtube.model.Video;
 import com.google.api.services.youtube.model.VideoListResponse;
+import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -27,6 +28,7 @@ import java.util.Optional;
 import java.util.Random;
 
 @Component
+@Slf4j
 public class DefaultLinkInfoExtractor implements LinkInfoExtractor {
 
     private static final List<String> USER_AGENT_LIST = Arrays.asList(
@@ -294,6 +296,8 @@ public class DefaultLinkInfoExtractor implements LinkInfoExtractor {
 
             return LinkMapper.toLinkInfo(title, "Reddit", contents, imageUrl);
         } catch (Exception e) {
+            log.error("Reddit 링크 정보 추출 중 예외 발생 - URL: {}\nMessage: {}\nStack Trace: {}",
+                    url, e.getMessage(), Arrays.toString(e.getStackTrace()));
             throw new LinkException(ErrorCode.LINK_SCRAPED_FAILED);
         }
     }
