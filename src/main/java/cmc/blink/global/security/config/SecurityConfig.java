@@ -30,7 +30,7 @@ public class SecurityConfig {
             "/swagger", "/swagger-ui.html", "/swagger-ui/**", "/api-docs", "/api-docs/**", "/v3/api-docs/**",
             "/v3/api-docs/swagger-config", "/v3/api-docs",
             "/api/auth/login/google", "/api/auth/login/apple", "/api/auth/reissue",
-            "/health", "/favicon.ico"
+            "/health", "/favicon.ico", "/api/auth/login/email"
     };
 
     @Bean
