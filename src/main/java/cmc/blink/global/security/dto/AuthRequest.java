@@ -33,4 +33,13 @@ public class AuthRequest {
     public static class ReissueRequestDto {
         String refreshToken;
     }
+
+    @Getter
+    public static class EmailLoginRequestDto {
+
+        @Schema(description = "시스템 설정 언어", example = "한국어: KO / 영어: EN")
+        String language;
+
+        String email;
+    }
 }
