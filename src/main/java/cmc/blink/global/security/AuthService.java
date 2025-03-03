@@ -11,6 +11,7 @@ import cmc.blink.domain.user.persistence.redis.BlackListTokenRepository;
 import cmc.blink.domain.user.persistence.redis.RefreshToken;
 import cmc.blink.domain.user.persistence.redis.RefreshTokenRepository;
 import cmc.blink.global.exception.JwtAuthenticationException;
+import cmc.blink.global.exception.NotFoundException;
 import cmc.blink.global.exception.constant.ErrorCode;
 import cmc.blink.global.security.client.AppleAuthClient;
 import cmc.blink.global.security.client.GoogleTokenVerifierClient;
@@ -133,7 +134,40 @@ public class AuthService {
 
     }
 
-    public String getAppleAccountId(String identityToken)
+
+    @Transactional
+    public AuthResponse.LoginResponseDto chromeExtensionLogin(AuthRequest.EmailLoginRequestDto dto) {
+
+        Optional<User> optionalUser = userQueryAdapter.findByEmail(dto.getEmail());
+
+        String language = dto.getLanguage();
+
+        User user;
+
+        if(optionalUser.isEmpty()){
+            user = UserMapper.toUser(dto, "chromeExtension");
+            userCommandAdapter.updateLastLoginTime(user);
+
+            linkService.saveDefaultLink(user, language);
+        }else{
+            user = optionalUser.get();
+
+            user.updateLoginTime();
+            userCommandAdapter.save(user);
+        }
+
+        UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+                user.getEmail(),
+                null,
+                Collections.singleton(new SimpleGrantedAuthority(Role.USER.getKey()))
+        );
+
+        Token token = tokenProvider.generateToken(authentication);
+
+        return AuthMapper.toLoginResponseDto(token);
+    }
+
+    private String getAppleAccountId(String identityToken)
             throws JsonProcessingException, AuthenticationException, NoSuchAlgorithmException,
             InvalidKeySpecException {
         Map headers = jwtValidator.parseHeaders(identityToken);

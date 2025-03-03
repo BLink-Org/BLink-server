@@ -48,4 +48,10 @@ public class AuthController {
 
         return ApiResponseDto.of("토큰 재발급이 완료되었습니다.", authService.reissue(reissueRequestDto));
     }
+
+    @PostMapping("/login/email")
+    @Operation(summary = "크롬 익스텐션 로그인 API", description = "크롬 익스텐션용 로그인 API입니다.")
+public ApiResponseDto<AuthResponse.LoginResponseDto> login(@RequestBody AuthRequest.EmailLoginRequestDto requestDto) {
+        return ApiResponseDto.of(authService.chromeExtensionLogin(requestDto));
+    }
 }

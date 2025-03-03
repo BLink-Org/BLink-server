@@ -27,6 +27,13 @@ public class UserMapper {
                 .build();
     }
 
+    public static User toUser(AuthRequest.EmailLoginRequestDto requestDto, String provider) {
+        return User.builder()
+                .email(requestDto.getEmail())
+                .provider(provider)
+                .build();
+    }
+
     public static UserResponse.UserInfo toUserInfo(User user, boolean deleteRequest, LocalDate deleteRequestDate, int linkCount, int pinCount, int folderCount) {
         return UserResponse.UserInfo.builder()
                 .email(user.getEmail())
