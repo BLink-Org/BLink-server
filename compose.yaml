@@ -1,4 +1,11 @@
 services:
+  mysql:
+    image: 'mysql:latest'
+    environment:
+      - MYSQL_DATABASE=blink
+      - MYSQL_ROOT_PASSWORD=1212
+    ports:
+      - '3306:3306'
   redis:
     image: 'redis:latest'
     ports:
