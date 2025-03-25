@@ -44,4 +44,10 @@ public class UserMapper {
                 .folderCount(folderCount)
                 .build();
     }
+
+    public static UserResponse.FundingStatus toFundingStatus(boolean fundingParticipated) {
+        return UserResponse.FundingStatus.builder()
+                .fundingParticipated(fundingParticipated)
+                .build();
+    }
 }
