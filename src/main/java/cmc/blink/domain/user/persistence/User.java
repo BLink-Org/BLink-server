@@ -43,6 +43,9 @@ public class User extends BaseTimeEntity {
     @Column(nullable = false)
     private LocalDateTime lastLoginTime;
 
+    @Column(nullable = false)
+    private boolean fundingParticipated;
+
     public void update(String name, String email, String provider) {
         this.name = name;
         this.email = email;
