@@ -54,6 +54,13 @@ public class UserService {
     }
 
     @Transactional
+    public UserResponse.FundingStatus findUserFundingStatus(User user) {
+        boolean fundingParticipated = user.isFundingParticipated();
+
+        return UserMapper.toFundingStatus(fundingParticipated);
+    }
+
+    @Transactional
     public void applyAccountDeletion(User user) {
         if (user.getDeleteRequestDate()!=null)
             throw new BadRequestException(ErrorCode.USER_ACCOUNT_DELETION_DENIED);

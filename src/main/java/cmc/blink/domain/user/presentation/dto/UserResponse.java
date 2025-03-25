@@ -17,4 +17,10 @@ public class UserResponse {
         int pinCount;
         int folderCount;
     }
+
+    @Getter
+    @Builder
+    public static class FundingStatus {
+        boolean fundingParticipated;
+    }
 }

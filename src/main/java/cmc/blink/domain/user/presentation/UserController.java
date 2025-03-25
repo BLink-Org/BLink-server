@@ -29,6 +29,12 @@ public class UserController {
         return ApiResponseDto.of(userService.findUserInfo(user));
     }
 
+    @GetMapping("/funding-status")
+    @Operation(summary = "펀딩 참여 여부 조회 API", description = "로그인 유저의 텀블벅 펀딩 참여 여부를 조회하는 API입니다.")
+    public ApiResponseDto<UserResponse.FundingStatus> findUserFundingStatus(@AuthUser User user) {
+        return ApiResponseDto.of(userService.findUserFundingStatus(user));
+    }
+
     @PatchMapping("/delete")
     @Operation(summary = "계정 삭제 신청 API", description = "계정 삭제 신청 API입니다.")
     @ApiResponses({
