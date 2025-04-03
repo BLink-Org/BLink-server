@@ -1,11 +1,11 @@
 name: B.Link Dev CI/CD
 
 on:
-  push:
-    branches:
+#  push:
+#    branches:
 #      - dev
 #      - feat/76
-  workflow_dispatch:
+#  workflow_dispatch:
 
 jobs:
   build:
