@@ -59,11 +59,21 @@ public class LinkValidator {
         }
     }
 
-    public String extractDomain(String url) {
+    public String extractHost(String url) {
         try {
             URI uri = new URI(url);
-            String domain = uri.getHost();
-            return domain != null && domain.startsWith("www.") ? domain.substring(4) : domain;
+            String host = uri.getHost();
+
+            if (host == null) {
+                throw new LinkException(ErrorCode.INVALID_LINK_URL);
+            }
+
+            // www. 제거 - 선택적
+            if (host.startsWith("www.")) {
+                host = host.substring(4);
+            }
+
+            return host;
         } catch (URISyntaxException e) {
             throw new LinkException(ErrorCode.INVALID_LINK_URL);
         }

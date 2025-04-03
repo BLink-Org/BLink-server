@@ -17,32 +17,16 @@ import cmc.blink.global.exception.BadRequestException;
 import cmc.blink.global.exception.FolderException;
 import cmc.blink.global.exception.LinkException;
 import cmc.blink.global.exception.constant.ErrorCode;
-import cmc.blink.global.util.opengraph.OpenGraph;
-import com.google.api.client.json.gson.GsonFactory;
-import com.google.api.services.youtube.YouTube;
-import com.google.api.services.youtube.YouTubeRequestInitializer;
-import com.google.api.services.youtube.model.Video;
-import com.google.api.services.youtube.model.VideoListResponse;
 import lombok.RequiredArgsConstructor;
-import org.jsoup.Connection;
-import org.jsoup.Jsoup;
-import org.jsoup.UnsupportedMimeTypeException;
-import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.util.HtmlUtils;
 
-import java.io.IOException;
-import java.net.*;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -69,7 +53,7 @@ public class LinkService {
 
         linkValidator.validate(url, user);
 
-        String domain = linkValidator.extractDomain(url);
+        String domain = linkValidator.extractHost(url);
         LinkResponse.LinkInfo linkInfo = linkInfoExtractor.extractInfo(domain, url);
 
         Link link = LinkMapper.toLink(url, user, linkInfo);
